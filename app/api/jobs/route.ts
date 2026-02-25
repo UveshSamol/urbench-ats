@@ -63,16 +63,42 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
   const parsed = createSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "VALIDATION_ERROR", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const { runAutoShortlist, ...jobData } = parsed.data;
 
   const job = await prisma.job.create({
-    data: { ...jobData, recruiterId: req.user.userId },
+    data: {
+      clientId: jobData.clientId,
+      title: jobData.title,
+      location: jobData.location || null,
+      type: jobData.type,
+      duration: jobData.duration || null,
+      durationMonths: jobData.durationMonths ?? null,
+      rate: jobData.rate || null,
+      rateNumeric: jobData.rateNumeric ?? null,
+      requiredModules: jobData.requiredModules,
+      preferredModules: jobData.preferredModules,
+      requiredYears: jobData.requiredYears ?? null,
+      requiredCerts: jobData.requiredCerts,
+      industries: jobData.industries,
+      visaSponsorship: jobData.visaSponsorship || null,
+      remote: jobData.remote || null,
+      description: jobData.description || null,
+      recruiterId: req.user.userId,
+    },
   });
 
-  await auditLog({ userId: req.user.userId, action: "JOB_CREATED", entityType: "job", entityId: job.id });
+  await auditLog({
+    userId: req.user.userId,
+    action: "JOB_CREATED",
+    entityType: "job",
+    entityId: job.id,
+  });
 
   if (runAutoShortlist) {
     autoShortlistForJob(job.id).catch(err => console.error("[AUTO-SHORTLIST]", err));

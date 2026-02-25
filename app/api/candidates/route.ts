@@ -84,8 +84,25 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
     }, { status: 409 });
   }
 
-  const candidate = await prisma.candidate.create({
-    data: { ...parsed.data, recruiterId: req.user.userId },
+ const candidate = await prisma.candidate.create({
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email || null,
+      phone: parsed.data.phone || null,
+      location: parsed.data.location || null,
+      yearsExperience: parsed.data.yearsExperience || null,
+      sapModules: parsed.data.sapModules,
+      otherErp: parsed.data.otherErp,
+      certifications: parsed.data.certifications,
+      industries: parsed.data.industries,
+      visaStatus: parsed.data.visaStatus || null,
+      availability: parsed.data.availability || null,
+      rateExpectation: parsed.data.rateExpectation || null,
+      employmentType: parsed.data.employmentType || null,
+      resumeText: parsed.data.resumeText || null,
+      aiSummary: parsed.data.aiSummary || null,
+      status: parsed.data.status,
+      recruiterId: req.user.userId,
   });
 
   await auditLog({ userId: req.user.userId, action: "CANDIDATE_CREATED", entityType: "candidate", entityId: candidate.id });

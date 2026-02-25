@@ -1,0 +1,309 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  RECRUITER
+  SALES
+}
+
+enum CandidateStatus {
+  sourcing
+  screening
+  submitted
+  interviewing
+  offered
+  placed
+  rejected
+}
+
+enum JobStatus {
+  Open
+  Filled
+  OnHold
+  Cancelled
+}
+
+enum ContractType {
+  Contract
+  Permanent
+  ContractToHire
+}
+
+enum SyncStatus {
+  success
+  failed
+  partial
+}
+
+enum EntityType {
+  candidate
+  job
+  placement
+}
+
+enum InterviewStage {
+  phone_screen
+  technical_round_1
+  technical_round_2
+  client_interview
+  final_round
+  offer_stage
+}
+
+enum SubmissionStatus {
+  submitted
+  client_reviewing
+  interview_scheduled
+  rejected_by_client
+  offer_extended
+  placed
+  withdrawn
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          Role      @default(RECRUITER)
+  isActive      Boolean   @default(true) @map("is_active")
+  lastLoginAt   DateTime? @map("last_login_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  candidates    Candidate[]
+  jobs          Job[]
+  placements    Placement[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  revoked   Boolean  @default(false)
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Client {
+  id            String   @id @default(cuid())
+  name          String
+  industry      String?
+  rateAgreement String?  @map("rate_agreement")
+  notes         String?  @db.Text
+  website       String?
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  pocs          POC[]
+  jobs          Job[]
+
+  @@map("clients")
+}
+
+model POC {
+  id        String   @id @default(cuid())
+  clientId  String   @map("client_id")
+  name      String
+  email     String?
+  phone     String?
+  title     String?
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("pocs")
+}
+
+model Candidate {
+  id               String          @id @default(cuid())
+  name             String
+  email            String?
+  phone            String?
+  location         String?
+  yearsExperience  Int?            @map("years_experience")
+  sapModules       String[]        @map("sap_modules")
+  otherErp         String[]        @map("other_erp")
+  certifications   String[]
+  industries       String[]
+  visaStatus       String?         @map("visa_status")
+  availability     String?
+  rateExpectation  String?         @map("rate_expectation")
+  employmentType   String?         @map("employment_type")
+  resumeText       String?         @map("resume_text") @db.Text
+  aiSummary        String?         @map("ai_summary") @db.Text
+  status           CandidateStatus @default(sourcing)
+  recruiterId      String          @map("recruiter_id")
+  ceipalId         String?         @unique @map("ceipal_id")
+  duplicateOfId    String?         @map("duplicate_of_id")
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  recruiter        User            @relation(fields: [recruiterId], references: [id])
+  submissions      Submission[]
+  matches          Match[]
+  placements       Placement[]
+  duplicateOf      Candidate?      @relation("Duplicates", fields: [duplicateOfId], references: [id])
+  duplicates       Candidate[]     @relation("Duplicates")
+
+  @@index([email])
+  @@index([phone])
+  @@index([status])
+  @@index([recruiterId])
+  @@map("candidates")
+}
+
+model Job {
+  id               String     @id @default(cuid())
+  clientId         String     @map("client_id")
+  title            String
+  location         String?
+  type             ContractType
+  duration         String?
+  durationMonths   Int?       @map("duration_months")
+  rate             String?
+  rateNumeric      Float?     @map("rate_numeric")
+  requiredModules  String[]   @map("required_modules")
+  preferredModules String[]   @map("preferred_modules")
+  requiredYears    Int?       @map("required_years")
+  requiredCerts    String[]   @map("required_certs")
+  industries       String[]
+  visaSponsorship  String?    @map("visa_sponsorship")
+  remote           String?
+  description      String?    @db.Text
+  status           JobStatus  @default(Open)
+  recruiterId      String     @map("recruiter_id")
+  autoShortlisted  Boolean    @default(false) @map("auto_shortlisted")
+  ceipalId         String?    @unique @map("ceipal_id")
+  createdAt        DateTime   @default(now()) @map("created_at")
+  updatedAt        DateTime   @updatedAt @map("updated_at")
+
+  client           Client     @relation(fields: [clientId], references: [id])
+  recruiter        User       @relation(fields: [recruiterId], references: [id])
+  submissions      Submission[]
+  matches          Match[]
+  placements       Placement[]
+
+  @@index([status])
+  @@index([clientId])
+  @@index([recruiterId])
+  @@map("jobs")
+}
+
+model Submission {
+  id              String           @id @default(cuid())
+  candidateId     String           @map("candidate_id")
+  jobId           String           @map("job_id")
+  submittedById   String?          @map("submitted_by_id")
+  submissionDate  DateTime         @default(now()) @map("submission_date")
+  interviewStage  InterviewStage?  @map("interview_stage")
+  clientFeedback  String?          @map("client_feedback") @db.Text
+  status          SubmissionStatus @default(submitted)
+  notes           String?          @db.Text
+  interviewDate   DateTime?        @map("interview_date")
+  offerAmount     Float?           @map("offer_amount")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  candidate       Candidate        @relation(fields: [candidateId], references: [id])
+  job             Job              @relation(fields: [jobId], references: [id])
+
+  @@unique([candidateId, jobId])
+  @@index([status])
+  @@map("submissions")
+}
+
+model Match {
+  id                  String   @id @default(cuid())
+  candidateId         String   @map("candidate_id")
+  jobId               String   @map("job_id")
+  overallScore        Int      @map("overall_score")
+  moduleScore         Int      @map("module_score")
+  experienceScore     Int      @map("experience_score")
+  industryScore       Int      @map("industry_score")
+  certificationScore  Int      @map("certification_score")
+  strengths           String[]
+  gaps                String[]
+  recommendation      String
+  summary             String   @db.Text
+  nextSteps           String?  @map("next_steps") @db.Text
+  ranByUserId         String?  @map("ran_by_user_id")
+  isAutoShortlist     Boolean  @default(false) @map("is_auto_shortlist")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  candidate           Candidate @relation(fields: [candidateId], references: [id])
+  job                 Job       @relation(fields: [jobId], references: [id])
+
+  @@index([candidateId])
+  @@index([jobId])
+  @@index([overallScore])
+  @@map("matches")
+}
+
+model Placement {
+  id           String       @id @default(cuid())
+  candidateId  String       @map("candidate_id")
+  jobId        String       @map("job_id")
+  recruiterId  String       @map("recruiter_id")
+  revenue      Float?
+  margin       Float?
+  startDate    DateTime?    @map("start_date")
+  endDate      DateTime?    @map("end_date")
+  contractType ContractType @map("contract_type")
+  aiScore      Int?         @map("ai_score")
+  notes        String?      @db.Text
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  candidate    Candidate    @relation(fields: [candidateId], references: [id])
+  job          Job          @relation(fields: [jobId], references: [id])
+  recruiter    User         @relation(fields: [recruiterId], references: [id])
+
+  @@index([recruiterId])
+  @@map("placements")
+}
+
+model CeipalSyncLog {
+  id           String     @id @default(cuid())
+  entityType   EntityType
+  entityId     String     @map("entity_id")
+  ceipalId     String     @map("ceipal_id")
+  syncedAt     DateTime   @default(now()) @map("synced_at")
+  status       SyncStatus
+  errorMessage String?    @map("error_message")
+  payload      Json?
+
+  @@index([ceipalId])
+  @@index([entityType])
+  @@map("ceipal_sync_logs")
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?  @map("user_id")
+  action     String
+  entityType String?  @map("entity_type")
+  entityId   String?  @map("entity_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([action])
+  @@map("audit_logs")
+}

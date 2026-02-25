@@ -49,15 +49,24 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
   const parsed = createSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "VALIDATION_ERROR", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const placement = await prisma.placement.create({
     data: {
-      ...parsed.data,
+      candidateId: parsed.data.candidateId,
+      jobId: parsed.data.jobId,
       recruiterId: req.user.userId,
-      startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : undefined,
-      endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : undefined,
+      revenue: parsed.data.revenue ?? null,
+      margin: parsed.data.margin ?? null,
+      startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : null,
+      endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
+      contractType: parsed.data.contractType,
+      aiScore: parsed.data.aiScore ?? null,
+      notes: parsed.data.notes || null,
     },
   });
 

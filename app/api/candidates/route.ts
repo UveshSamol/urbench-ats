@@ -72,10 +72,17 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
   const parsed = createSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "VALIDATION_ERROR", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
-  const dupCheck = await detectDuplicate(parsed.data.email, parsed.data.phone);
+  const dupCheck = await detectDuplicate(
+    parsed.data.email,
+    parsed.data.phone
+  );
+
   if (dupCheck.isDuplicate) {
     return NextResponse.json({
       error: "DUPLICATE_CANDIDATE",
@@ -90,7 +97,7 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
       email: parsed.data.email || null,
       phone: parsed.data.phone || null,
       location: parsed.data.location || null,
-      yearsExperience: parsed.data.yearsExperience || null,
+      yearsExperience: parsed.data.yearsExperience ?? null,
       sapModules: parsed.data.sapModules,
       otherErp: parsed.data.otherErp,
       certifications: parsed.data.certifications,
@@ -106,7 +113,12 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
     },
   });
 
-  await auditLog({ userId: req.user.userId, action: "CANDIDATE_CREATED", entityType: "candidate", entityId: candidate.id });
+  await auditLog({
+    userId: req.user.userId,
+    action: "CANDIDATE_CREATED",
+    entityType: "candidate",
+    entityId: candidate.id,
+  });
 
   return NextResponse.json({ data: candidate }, { status: 201 });
 });

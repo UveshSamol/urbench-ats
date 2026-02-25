@@ -84,7 +84,7 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
     }, { status: 409 });
   }
 
- const candidate = await prisma.candidate.create({
+  const candidate = await prisma.candidate.create({
     data: {
       name: parsed.data.name,
       email: parsed.data.email || null,
@@ -103,6 +103,7 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
       aiSummary: parsed.data.aiSummary || null,
       status: parsed.data.status,
       recruiterId: req.user.userId,
+    },
   });
 
   await auditLog({ userId: req.user.userId, action: "CANDIDATE_CREATED", entityType: "candidate", entityId: candidate.id });

@@ -35,9 +35,21 @@ export const POST = withSales(async (req: AuthenticatedRequest) => {
   const parsed = createSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "VALIDATION_ERROR", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
-  const client = await prisma.client.create({ data: parsed.data });
+  const client = await prisma.client.create({
+    data: {
+      name: parsed.data.name,
+      industry: parsed.data.industry || null,
+      rateAgreement: parsed.data.rateAgreement || null,
+      notes: parsed.data.notes || null,
+      website: parsed.data.website || null,
+    },
+  });
+
   return NextResponse.json({ data: client }, { status: 201 });
 });

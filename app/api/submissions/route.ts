@@ -14,11 +14,9 @@ const createSchema = z.object({
 export const GET = withRecruiter(async (req: AuthenticatedRequest) => {
   const recruiterFilter = buildRecruiterFilter(req.user);
   const url = new URL(req.url);
-  const status = url.searchParams.get("status") || undefined;
 
   const submissions = await prisma.submission.findMany({
     where: {
-      ...(status && { status }),
       candidate: recruiterFilter.recruiterId
         ? { recruiterId: recruiterFilter.recruiterId }
         : undefined,
@@ -38,7 +36,10 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
   const parsed = createSchema.safeParse(body);
 
   if (!parsed.success) {
-    return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
+    return NextResponse.json(
+      { error: "VALIDATION_ERROR", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
 
   const existing = await prisma.submission.findUnique({
@@ -63,10 +64,10 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
       candidateId: parsed.data.candidateId,
       jobId: parsed.data.jobId,
       submittedById: req.user.userId,
-      notes: parsed.data.notes,
+      notes: parsed.data.notes || null,
       interviewDate: parsed.data.interviewDate
         ? new Date(parsed.data.interviewDate)
-        : undefined,
+        : null,
     },
   });
 

@@ -13,6 +13,16 @@ enum Role {
   SALES
 }
 
+enum CandidateStatus {
+  sourcing
+  screening
+  submitted
+  interviewing
+  offered
+  placed
+  rejected
+}
+
 enum SubmissionStatus {
   submitted
   reviewing
@@ -57,16 +67,6 @@ enum InterviewStage {
   offer_stage
 }
 
-enum SubmissionStatus {
-  submitted
-  client_reviewing
-  interview_scheduled
-  rejected_by_client
-  offer_extended
-  placed
-  withdrawn
-}
-
 model User {
   id            String    @id @default(cuid())
   name          String
@@ -106,6 +106,8 @@ model Client {
   id            String   @id @default(cuid())
   name          String
   industry      String?
+  contactName   String?  @map("contact_name")
+  contactEmail  String?  @map("contact_email")
   rateAgreement String?  @map("rate_agreement")
   notes         String?  @db.Text
   website       String?
@@ -167,45 +169,43 @@ model Candidate {
 
   @@index([email])
   @@index([phone])
-  @@index([status])
   @@index([recruiterId])
   @@map("candidates")
 }
 
 model Job {
-  id               String     @id @default(cuid())
-  clientId         String     @map("client_id")
+  id               String       @id @default(cuid())
+  clientId         String       @map("client_id")
   title            String
   location         String?
   type             ContractType
   duration         String?
-  durationMonths   Int?       @map("duration_months")
+  durationMonths   Int?         @map("duration_months")
   rate             String?
-  rateNumeric      Float?     @map("rate_numeric")
-  requiredModules  String[]   @map("required_modules")
-  preferredModules String[]   @map("preferred_modules")
-  requiredYears    Int?       @map("required_years")
-  requiredCerts    String[]   @map("required_certs")
+  rateNumeric      Float?       @map("rate_numeric")
+  currency         String?      @default("USD") @map("currency")
+  paymentType      String?      @default("Hourly") @map("payment_type")
+  requiredModules  String[]     @map("required_modules")
+  preferredModules String[]     @map("preferred_modules")
+  requiredYears    Int?         @map("required_years")
+  requiredCerts    String[]     @map("required_certs")
   industries       String[]
-  visaSponsorship  String?    @map("visa_sponsorship")
+  visaSponsorship  String?      @map("visa_sponsorship")
   remote           String?
-  description      String?    @db.Text
-  status           JobStatus  @default(Open)
-  recruiterId      String     @map("recruiter_id")
-  autoShortlisted  Boolean    @default(false) @map("auto_shortlisted")
-  ceipalId         String?    @unique @map("ceipal_id")
-  createdAt        DateTime   @default(now()) @map("created_at")
-  currency      String?  @default("USD") @map("currency")
-  paymentType   String?  @default("Hourly") @map("payment_type")
-  updatedAt        DateTime   @updatedAt @map("updated_at")
+  description      String?      @db.Text
+  status           JobStatus    @default(Open)
+  recruiterId      String       @map("recruiter_id")
+  autoShortlisted  Boolean      @default(false) @map("auto_shortlisted")
+  ceipalId         String?      @unique @map("ceipal_id")
+  createdAt        DateTime     @default(now()) @map("created_at")
+  updatedAt        DateTime     @updatedAt @map("updated_at")
 
-  client           Client     @relation(fields: [clientId], references: [id])
-  recruiter        User       @relation(fields: [recruiterId], references: [id])
+  client           Client       @relation(fields: [clientId], references: [id])
+  recruiter        User         @relation(fields: [recruiterId], references: [id])
   submissions      Submission[]
   matches          Match[]
   placements       Placement[]
 
-  @@index([status])
   @@index([clientId])
   @@index([recruiterId])
   @@map("jobs")

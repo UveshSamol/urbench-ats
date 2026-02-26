@@ -426,6 +426,163 @@ function AITools({ token, notify }: any) {
     </div>
   );
 }
+function JobsPage({ token, notify }: any) {
+  const [list, setList] = useState<any[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [modal, setModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<any>({ type: "Contract" });
+
+  function load() {
+    setLoading(true);
+    Promise.all([
+      api("/api/jobs", "GET", null, token),
+      api("/api/clients", "GET", null, token),
+    ]).then(([j, c]) => {
+      setList(j.data || []);
+      setClients(c.data || []);
+    }).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
+  }
+  useEffect(() => { load(); }, [token]);
+
+  const filtered = list.filter(x => !search || JSON.stringify(x).toLowerCase().includes(search.toLowerCase()));
+
+  function save() {
+    if (!form.clientId) { notify("Please select a client", "error"); return; }
+    if (!form.title) { notify("Job title is required", "error"); return; }
+    setSaving(true);
+    const body = {
+      clientId: form.clientId,
+      title: form.title,
+      description: form.description || "",
+      location: form.location || "",
+      type: form.type || "Contract",
+      rate: form.rate || "",
+      rateNumeric: form.rateNumeric ? Number(form.rateNumeric) : undefined,
+      currency: form.currency || "USD",
+      paymentType: form.paymentType || "Hourly",
+      remote: form.remote || "",
+      duration: form.duration || "",
+    };
+    api("/api/jobs", "POST", body, token)
+      .then(() => { notify("Job added!", "success"); setModal(false); setForm({ type: "Contract" }); load(); })
+      .catch(e => notify(e.message, "error"))
+      .finally(() => setSaving(false));
+  }
+
+  return (
+    <div>
+      <div style={S.bar}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>Jobs</div>
+        <button type="button" onClick={() => setModal(true)} style={S.btn}>+ Add Job</button>
+      </div>
+      <div style={S.page}>
+        <div style={S.card}>
+          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>All Jobs ({list.length})</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
+          </div>
+          {loading ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>Loading...</div> :
+            filtered.length === 0 ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>No jobs found</div> : (
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={S.th}>Title</th>
+                    <th style={S.th}>Client</th>
+                    <th style={S.th}>Location</th>
+                    <th style={S.th}>Type</th>
+                    <th style={S.th}>Rate</th>
+                    <th style={S.th}>Currency</th>
+                    <th style={S.th}>Payment</th>
+                    <th style={S.th}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((x: any, i: number) => (
+                    <tr key={i}>
+                      <td style={S.tdn}>{x.title}</td>
+                      <td style={S.td}>{x.client?.name || "—"}</td>
+                      <td style={S.td}>{x.location || "—"}</td>
+                      <td style={S.td}><Badge>{x.type || "Contract"}</Badge></td>
+                      <td style={S.td}>{x.rate || (x.rateNumeric ? `${x.rateNumeric}` : "—")}</td>
+                      <td style={S.td}>{x.currency || "USD"}</td>
+                      <td style={S.td}>{x.paymentType || "Hourly"}</td>
+                      <td style={S.td}><Badge status={x.status}>{x.status || "Open"}</Badge></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+        </div>
+      </div>
+
+      {modal && (
+        <Modal title="Add New Job" onClose={() => setModal(false)} onSave={save} saving={saving}>
+          <Field label="Client *">
+            <select style={S.inp} value={form.clientId || ""} onChange={e => setForm({ ...form, clientId: e.target.value })}>
+              <option value="">— Select Client —</option>
+              {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Field>
+          <Field label="Job Title *">
+            <input style={S.inp} value={form.title || ""} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. SAP FICO Consultant" />
+          </Field>
+          <Field label="Description">
+            <textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} />
+          </Field>
+          <Field label="Location">
+            <input style={S.inp} value={form.location || ""} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Dallas, TX (Remote)" />
+          </Field>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <Field label="Type">
+              <select style={S.inp} value={form.type || "Contract"} onChange={e => setForm({ ...form, type: e.target.value })}>
+                <option value="Contract">Contract</option>
+                <option value="Permanent">Permanent</option>
+                <option value="ContractToHire">Contract to Hire</option>
+              </select>
+            </Field>
+            <Field label="Duration">
+              <input style={S.inp} value={form.duration || ""} onChange={e => setForm({ ...form, duration: e.target.value })} placeholder="e.g. 6 months" />
+            </Field>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            <Field label="Rate">
+              <input style={S.inp} type="number" value={form.rateNumeric || ""} onChange={e => setForm({ ...form, rateNumeric: e.target.value })} placeholder="85" />
+            </Field>
+            <Field label="Currency">
+              <select style={S.inp} value={form.currency || "USD"} onChange={e => setForm({ ...form, currency: e.target.value })}>
+                <option value="USD">USD</option>
+                <option value="GBP">GBP</option>
+                <option value="EUR">EUR</option>
+                <option value="INR">INR</option>
+                <option value="CAD">CAD</option>
+                <option value="AUD">AUD</option>
+              </select>
+            </Field>
+            <Field label="Payment Type">
+              <select style={S.inp} value={form.paymentType || "Hourly"} onChange={e => setForm({ ...form, paymentType: e.target.value })}>
+                <option value="Hourly">Hourly</option>
+                <option value="Daily">Daily</option>
+                <option value="Monthly">Monthly</option>
+                <option value="Yearly">Yearly</option>
+              </select>
+            </Field>
+          </div>
+          <Field label="Remote">
+            <select style={S.inp} value={form.remote || ""} onChange={e => setForm({ ...form, remote: e.target.value })}>
+              <option value="">— Select —</option>
+              <option value="Remote">Remote</option>
+              <option value="Hybrid">Hybrid</option>
+              <option value="Onsite">Onsite</option>
+            </select>
+          </Field>
+        </Modal>
+      )}
+    </div>
+  );
+}
 function UsersPage({ token, notify }: any) {
   const [list, setList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -603,11 +760,22 @@ export default function Page() {
       <div style={{ marginLeft: 230, flex: 1, minHeight: "100vh" }}>
         {page === "dashboard" && <Dashboard token={token} goTo={setPage} notify={notify} />}
         {page === "candidates" && <DataPage title="Candidates" token={token} notify={notify} endpoint="/api/candidates" addTitle="Candidate"
-          columns={[{ key: "name", label: "Name", isName: true, render: (x: any) => `${x.firstName || x.name || "—"} ${x.lastName || ""}` }, { key: "email", label: "Email" }, { key: "title", label: "Title / Skills", render: (x: any) => x.title || x.skills || "—" }, { key: "status", label: "Status", render: (x: any) => <Badge status={x.status}>{x.status || "Active"}</Badge> }, { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) }]}
-          addFields={[{ key: "firstName", label: "First Name" }, { key: "lastName", label: "Last Name" }, { key: "email", label: "Email", type: "email" }, { key: "phone", label: "Phone" }, { key: "title", label: "Title", placeholder: "e.g. SAP FICO Consultant" }, { key: "skills", label: "Skills", placeholder: "e.g. SAP S/4HANA, FICO" }]} />}
-        {page === "jobs" && <DataPage title="Jobs" token={token} notify={notify} endpoint="/api/jobs" addTitle="Job"
-          columns={[{ key: "title", label: "Title", isName: true }, { key: "client", label: "Client", render: (x: any) => x.client?.name || x.clientName || "—" }, { key: "location", label: "Location" }, { key: "type", label: "Type", render: (x: any) => <Badge>{x.type || "Contract"}</Badge> }, { key: "billRate", label: "Bill Rate", render: (x: any) => x.billRate ? `$${x.billRate}/hr` : "—" }, { key: "status", label: "Status", render: (x: any) => <Badge status={x.status}>{x.status || "Open"}</Badge> }]}
-          addFields={[{ key: "title", label: "Job Title", placeholder: "e.g. SAP S/4HANA Consultant" }, { key: "description", label: "Description", type: "textarea" }, { key: "location", label: "Location", placeholder: "e.g. Dallas, TX (Remote)" }, { key: "billRate", label: "Bill Rate ($/hr)", type: "number" }, { key: "payRate", label: "Pay Rate ($/hr)", type: "number" }, { key: "type", label: "Type", type: "select", options: [{ value: "CONTRACT", label: "Contract" }, { value: "FULL_TIME", label: "Full Time" }, { value: "CONTRACT_TO_HIRE", label: "Contract to Hire" }] }]} />}
+          columns={[{ key: "name", label: "Name", isName: true, render: (x: any) => x.name || "—" }, { key: "email", label: "Email" }, { key: "title", label: "Title / Skills", render: (x: any) => x.title || x.skills || "—" }, { key: "status", label: "Status", render: (x: any) => <Badge status={x.status}>{x.status || "Active"}</Badge> }, { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) }]}
+          addFields={[
+  { key: "name", label: "Full Name", placeholder: "e.g. John Smith" },
+  { key: "email", label: "Email", type: "email" },
+  { key: "phone", label: "Phone" },
+  { key: "location", label: "Location", placeholder: "e.g. Dallas, TX" },
+  { key: "visaStatus", label: "Visa Status", placeholder: "e.g. H1B, GC, USC" },
+  { key: "rateExpectation", label: "Rate Expectation", placeholder: "e.g. $85/hr" },
+  { key: "availability", label: "Availability", placeholder: "e.g. Immediate, 2 weeks" },
+  { key: "employmentType", label: "Employment Type", type: "select", options: [
+    { value: "CONTRACT", label: "Contract" },
+    { value: "FULL_TIME", label: "Full Time" },
+    { value: "CONTRACT_TO_HIRE", label: "Contract to Hire" },
+  ]},
+]} />}
+        {page === "jobs" && <JobsPage token={token} notify={notify} />}
         {page === "clients" && <DataPage title="Clients" token={token} notify={notify} endpoint="/api/clients" addTitle="Client"
           columns={[{ key: "name", label: "Company", isName: true }, { key: "industry", label: "Industry" }, { key: "contactName", label: "Contact" }, { key: "contactEmail", label: "Email" }, { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) }]}
           addFields={[{ key: "name", label: "Company Name" }, { key: "industry", label: "Industry", placeholder: "e.g. Manufacturing, Finance" }, { key: "contactName", label: "Contact Name" }, { key: "contactEmail", label: "Contact Email", type: "email" }]} />}

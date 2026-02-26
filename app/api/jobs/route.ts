@@ -22,6 +22,8 @@ const createSchema = z.object({
   visaSponsorship: z.string().optional(),
   remote: z.string().optional(),
   description: z.string().optional(),
+  currency: z.string().optional(),
+  paymentType: z.string().optional(),
   runAutoShortlist: z.boolean().default(false),
 });
 
@@ -90,6 +92,8 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
       remote: jobData.remote || null,
       description: jobData.description || null,
       recruiterId: req.user.userId,
+      currency: jobData.currency || "USD",
+      paymentType: jobData.paymentType || "Hourly",
     },
   });
 

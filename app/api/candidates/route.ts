@@ -69,26 +69,36 @@ export const GET = withRecruiter(async (req: AuthenticatedRequest) => {
 
 export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
   const body = await req.json();
+  console.log("[CANDIDATE POST] body:", JSON.stringify(body));
+
   const parsed = createSchema.safeParse(body);
 
   if (!parsed.success) {
+    console.log("[CANDIDATE POST] validation failed:", JSON.stringify(parsed.error.flatten()));
     return NextResponse.json(
       { error: "VALIDATION_ERROR", issues: parsed.error.flatten() },
       { status: 400 }
     );
   }
 
-  const dupCheck = await detectDuplicate(
-    parsed.data.email,
-    parsed.data.phone
-  );
-
-  if (dupCheck.isDuplicate) {
-    return NextResponse.json({
-      error: "DUPLICATE_CANDIDATE",
-      message: "A candidate with this email or phone already exists",
-      existingId: dupCheck.existingId,
-    }, { status: 409 });
+  // Safe duplicate check - skip if no email/phone
+  if (parsed.data.email || parsed.data.phone) {
+    try {
+      const dupCheck = await detectDuplicate(
+        parsed.data.email,
+        parsed.data.phone
+      );
+      if (dupCheck.isDuplicate) {
+        return NextResponse.json({
+          error: "DUPLICATE_CANDIDATE",
+          message: "A candidate with this email or phone already exists",
+          existingId: dupCheck.existingId,
+        }, { status: 409 });
+      }
+    } catch (e) {
+      console.error("[CANDIDATE POST] duplicate check failed:", e);
+      // Continue even if duplicate check fails
+    }
   }
 
   const candidate = await prisma.candidate.create({

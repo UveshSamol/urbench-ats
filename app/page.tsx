@@ -1,6 +1,46 @@
 "use client";
 import { useState, useEffect } from "react";
 
+// ── Responsive hook ────────────────────────────────────────────────────────
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  return isMobile;
+}
+
+// ── Inject global responsive CSS ───────────────────────────────────────────
+function GlobalStyles() {
+  return (
+    <style>{`
+      * { box-sizing: border-box; }
+      body { margin: 0; overflow-x: hidden; }
+      .resp-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+      .resp-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .resp-grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; }
+      .table-wrap  { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .resp-page   { padding: 24px 28px; }
+      .resp-bar    { padding: 16px 28px; }
+      .resp-profile-grid { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: start; }
+      @media (max-width: 767px) {
+        .resp-grid-4  { grid-template-columns: 1fr 1fr !important; }
+        .resp-grid-5  { grid-template-columns: 1fr 1fr !important; }
+        .resp-grid-2  { grid-template-columns: 1fr !important; }
+        .resp-page    { padding: 16px 14px !important; }
+        .resp-bar     { padding: 14px 16px !important; }
+        .resp-profile-grid { grid-template-columns: 1fr !important; }
+        .hide-mobile  { display: none !important; }
+        .modal-inner  { width: 95vw !important; margin: 0 10px; }
+      }
+      input, select, textarea { box-sizing: border-box; }
+    `}</style>
+  );
+}
+
 const BRAND    = process.env.NEXT_PUBLIC_BRAND_COLOR    || "#00D4FF";
 const ACCENT   = process.env.NEXT_PUBLIC_ACCENT_COLOR   || "#B44FFF";
 const BG       = process.env.NEXT_PUBLIC_BG_COLOR       || "#04050E";
@@ -71,8 +111,8 @@ const S = {
   tdn: { padding:"13px 16px", fontSize:13, borderBottom:`1px solid rgba(255,255,255,0.035)`, color:TEXT, fontWeight:500 },
   btn: { display:"inline-flex", alignItems:"center", gap:6, padding:"9px 18px", background:G1, border:"none", borderRadius:10, color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", boxShadow:`0 4px 20px rgba(0,212,255,0.25)`, transition:"opacity 0.2s,transform 0.15s" } as React.CSSProperties,
   card: { background:GLASS, backdropFilter:GLASS_BLUR, border:`1px solid ${GLASS_BORDER}`, borderRadius:RADIUS, overflow:"hidden" as const, boxShadow:"0 8px 32px rgba(0,0,0,0.45)" },
-  page: { padding:"24px 28px" },
-  bar: { padding:"16px 28px", borderBottom:`1px solid ${GLASS_BORDER}`, background:`rgba(6,7,26,0.85)`, backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"space-between" } as React.CSSProperties,
+  page: { padding:"24px 28px" } as React.CSSProperties,
+  bar: { borderBottom:`1px solid ${GLASS_BORDER}`, background:`rgba(6,7,26,0.85)`, backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"space-between" } as React.CSSProperties,
 };
 
 // ── Badge ──────────────────────────────────────────────────────────────────
@@ -98,8 +138,8 @@ function Stat({ label, value, color, sub }: { label:string; value:string|number;
 // ── Modal ──────────────────────────────────────────────────────────────────
 function Modal({ title, onClose, children, onSave, saving }: any) {
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:100, backdropFilter:"blur(6px)" }}>
-      <div style={{ background:"rgba(10,12,30,0.97)", backdropFilter:"blur(30px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:18, width:500, maxHeight:"85vh", overflowY:"auto", boxShadow:`0 24px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(0,212,255,0.06)` }}>
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:100, backdropFilter:"blur(6px)", padding:"10px" }}>
+      <div className="modal-inner" style={{ background:"rgba(10,12,30,0.97)", backdropFilter:"blur(30px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:18, width:500, maxWidth:"100%", maxHeight:"90vh", overflowY:"auto", boxShadow:`0 24px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(0,212,255,0.06)` }}>
         <div style={{ padding:"18px 22px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(0,212,255,0.02)" }}>
           <div style={{ fontSize:15, fontWeight:700, color:TEXT }}>{title}</div>
           <button type="button" onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"none", color:MUTED, cursor:"pointer", fontSize:14, width:28, height:28, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:FONT }}>✕</button>
@@ -283,13 +323,13 @@ function Dashboard({ token, goTo, notify, userName, userRole }: any) {
 
   return (
     <div>
-      <div style={S.bar}>
+      <div className="resp-bar" style={S.bar}>
         <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Dashboard</div>
         <LiveClock />
       </div>
-      <div style={S.page}>
+      <div className="resp-page" style={S.page}>
         {/* Welcome + Profile Card */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr auto", gap:16, marginBottom:24, alignItems:"start" }}>
+        <div className="resp-profile-grid" style={{ marginBottom:24 }}>
           <div style={{ background:`linear-gradient(135deg,rgba(0,212,255,0.07),rgba(180,79,255,0.04))`, backdropFilter:"blur(20px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:16, padding:"22px 26px", position:"relative", overflow:"hidden" }}>
             <div style={{ position:"absolute", top:-30, right:-30, width:150, height:150, borderRadius:"50%", background:`radial-gradient(circle,rgba(0,212,255,0.15),transparent 70%)`, pointerEvents:"none" }} />
             <div style={{ fontSize:20, fontWeight:800, color:TEXT, marginBottom:4 }}>
@@ -318,7 +358,7 @@ function Dashboard({ token, goTo, notify, userName, userRole }: any) {
         </div>
 
         {/* Stats Row */}
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(5,1fr)", gap:14, marginBottom:24 }}>
+        <div className="resp-grid-5" style={{ marginBottom:24 }}>
           <Stat label="Candidates"       value={data.c.length} color={BRAND} />
           <Stat label="Open Jobs"        value={data.j.length} color="#10B981" />
           <Stat label="Clients"          value={data.cl.length} color={ACCENT} />
@@ -328,7 +368,7 @@ function Dashboard({ token, goTo, notify, userName, userRole }: any) {
 
         {/* Alerts row */}
         {(hotJobs.length>0 || pendingReview.length>0) && (
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:24 }}>
+          <div className="resp-grid-2" style={{ marginBottom:24 }}>
             {hotJobs.length>0 && (
               <div style={{ ...S.card, padding:16, border:`1px solid rgba(245,158,11,0.2)`, background:"rgba(245,158,11,0.04)" }}>
                 <div style={{ fontSize:13, fontWeight:700, color:"#F59E0B", marginBottom:10 }}>🔥 Hot Jobs ({hotJobs.length})</div>
@@ -353,7 +393,7 @@ function Dashboard({ token, goTo, notify, userName, userRole }: any) {
         )}
 
         {/* Recent tables */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
+        <div className="resp-grid-2">
           <div style={S.card}>
             <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>Recent Candidates</span>
@@ -413,11 +453,11 @@ function DataPage({ title, token, notify, endpoint, columns, addTitle, addFields
 
   return (
     <div>
-      <div style={S.bar}>
+      <div className="resp-bar" style={S.bar}>
         <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>{title}</div>
         {addFields && <button type="button" onClick={()=>setModal(true)} style={S.btn}>+ {addTitle}</button>}
       </div>
-      <div style={S.page}>
+      <div className="resp-page" style={S.page}>
         <div style={S.card}>
           <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All {title} ({list.length})</span>
@@ -425,14 +465,14 @@ function DataPage({ title, token, notify, endpoint, columns, addTitle, addFields
           </div>
           {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> :
             filtered.length===0 ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>No {title.toLowerCase()} found</div> :
-            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+            <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr>{columns.map((c:any)=><th key={c.key} style={S.th}>{c.label}</th>)}</tr></thead>
               <tbody>{filtered.map((x:any,i:number)=>(
                 <tr key={i} style={{ transition:"background 0.15s" }} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.02)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
                   {columns.map((c:any)=><td key={c.key} style={c.isName?S.tdn:S.td}>{c.render?c.render(x):x[c.key]||"—"}</td>)}
                 </tr>
               ))}</tbody>
-            </table>}
+            </table></div>}
         </div>
       </div>
       {modal && addFields && (
@@ -467,16 +507,16 @@ function Analytics({ token }: any) {
 
   return (
     <div>
-      <div style={S.bar}><div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Analytics</div></div>
-      <div style={S.page}>
+      <div className="resp-bar" style={S.bar}><div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Analytics</div></div>
+      <div className="resp-page" style={S.page}>
         {loading ? <div style={{ padding:60, textAlign:"center", color:MUTED }}>Loading...</div> : <>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14, marginBottom:24 }}>
+          <div className="resp-grid-4" style={{ marginBottom:24 }}>
             <Stat label="Total Placements" value={rec?.totalPlacements||0} color="#10B981" />
             <Stat label="Active Submissions" value={rec?.activeSubmissions||0} color={BRAND} />
             <Stat label="Fill Rate" value={`${rec?.fillRate||0}%`} color={ACCENT} />
             <Stat label="Revenue" value={`$${Math.floor((rec?.revenue||0)/1000)}k`} color="#F59E0B" />
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
+          <div className="resp-grid-2">
             <div style={{ ...S.card, padding:20 }}>
               <div style={{ fontSize:14, fontWeight:700, marginBottom:16, color:TEXT }}>Revenue Forecast</div>
               <SimpleBar data={cd} labelKey="month" valueKey="revenue" />
@@ -534,8 +574,8 @@ function AITools({ token, notify }: any) {
 
   return (
     <div>
-      <div style={S.bar}><div style={{ fontSize:18, fontWeight:700, color:TEXT }}>AI Tools</div></div>
-      <div style={S.page}>
+      <div className="resp-bar" style={S.bar}><div style={{ fontSize:18, fontWeight:700, color:TEXT }}>AI Tools</div></div>
+      <div className="resp-page" style={S.page}>
         <div style={{ display:"flex", gap:6, marginBottom:20 }}>
           {[{id:"resume",l:"Parse Resume"},{id:"jd",l:"Parse JD"},{id:"match",l:"AI Match"}].map(t=>(
             <button key={t.id} type="button" onClick={()=>{ setTab(t.id); setRes(null); setTxt(""); setFile(null); }}
@@ -624,11 +664,11 @@ function CandidatesPage({ token, notify }: any) {
 
   return (
     <div>
-      <div style={S.bar}>
+      <div className="resp-bar" style={S.bar}>
         <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Candidates</div>
         <button type="button" onClick={()=>{ setForm({}); setEditId(null); setModal(true); }} style={S.btn}>+ Add Candidate</button>
       </div>
-      <div style={S.page}>
+      <div className="resp-page" style={S.page}>
         <div style={S.card}>
           <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All Candidates ({list.length})</span>
@@ -636,7 +676,7 @@ function CandidatesPage({ token, notify }: any) {
           </div>
           {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> :
            filtered.length===0 ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>No candidates found</div> : (
-            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+            <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr>
                 <th style={S.th}>CAN ID</th><th style={S.th}>Name</th><th style={S.th}>Email</th>
                 <th style={S.th}>Location</th><th style={S.th}>Visa</th><th style={S.th}>Rate</th>
@@ -666,7 +706,7 @@ function CandidatesPage({ token, notify }: any) {
                   </td>
                 </tr>
               ))}</tbody>
-            </table>
+            </table></div>
           )}
         </div>
       </div>
@@ -727,11 +767,11 @@ function JobsPage({ token, notify }: any) {
 
   return (
     <div>
-      <div style={S.bar}>
+      <div className="resp-bar" style={S.bar}>
         <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Jobs</div>
         <button type="button" onClick={()=>{ setForm({type:"Contract"}); setEditId(null); setModal(true); }} style={S.btn}>+ Add Job</button>
       </div>
-      <div style={S.page}>
+      <div className="resp-page" style={S.page}>
         <div style={S.card}>
           <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All Jobs ({list.length})</span>
@@ -739,7 +779,7 @@ function JobsPage({ token, notify }: any) {
           </div>
           {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> :
            filtered.length===0 ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>No jobs found</div> : (
-            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+            <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr>
                 <th style={S.th}>JOB ID</th><th style={S.th}>Title</th><th style={S.th}>Client</th>
                 <th style={S.th}>Location</th><th style={S.th}>Type</th><th style={S.th}>Rate</th>
@@ -765,7 +805,7 @@ function JobsPage({ token, notify }: any) {
                   </td>
                 </tr>
               ))}</tbody>
-            </table>
+            </table></div>
           )}
         </div>
       </div>
@@ -870,11 +910,11 @@ function SubmissionsPage({ token, notify, userRole }: any) {
 
   return (
     <div>
-      <div style={S.bar}>
+      <div className="resp-bar" style={S.bar}>
         <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Submissions</div>
         <button type="button" onClick={()=>setModal(true)} style={S.btn}>+ Add Submission</button>
       </div>
-      <div style={S.page}>
+      <div className="resp-page" style={S.page}>
         <div style={S.card}>
           <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All Submissions ({list.length})</span>
@@ -882,7 +922,7 @@ function SubmissionsPage({ token, notify, userRole }: any) {
           </div>
           {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> :
            filtered.length===0 ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>No submissions yet</div> : (
-            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+            <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr>
                 <th style={S.th}>SUB ID</th><th style={S.th}>Candidate</th><th style={S.th}>Job</th>
                 <th style={S.th}>Client</th><th style={S.th}>Status</th><th style={S.th}>Interview</th>
@@ -900,7 +940,7 @@ function SubmissionsPage({ token, notify, userRole }: any) {
                   {canChangeStatus&&<td style={S.td}><button type="button" onClick={()=>{ setStatusModal(x); setStatusForm({status:x.status,internalNotes:x.internalNotes||""}); }} style={{ padding:"4px 10px", fontSize:11, borderRadius:6, border:`1px solid ${GLASS_BORDER}`, background:"rgba(0,212,255,0.08)", color:BRAND, cursor:"pointer", fontFamily:FONT }}>✏️ Update</button></td>}
                 </tr>
               ))}</tbody>
-            </table>
+            </table></div>
           )}
         </div>
       </div>
@@ -979,18 +1019,18 @@ function UsersPage({ token, notify }: any) {
 
   return (
     <div>
-      <div style={S.bar}>
+      <div className="resp-bar" style={S.bar}>
         <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Manage Users</div>
         <button type="button" onClick={()=>setAddModal(true)} style={S.btn}>+ Add User</button>
       </div>
-      <div style={S.page}>
+      <div className="resp-page" style={S.page}>
         <div style={S.card}>
           <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
             <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All Users ({list.length})</span>
             <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width:220 }} />
           </div>
           {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> : (
-            <table style={{ width:"100%", borderCollapse:"collapse" }}>
+            <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr><th style={S.th}>Name</th><th style={S.th}>Email</th><th style={S.th}>Role</th><th style={S.th}>Status</th><th style={S.th}>Added</th><th style={S.th}>Actions</th></tr></thead>
               <tbody>{filtered.map((x:any,i:number)=>(
                 <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.02)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
@@ -1007,7 +1047,7 @@ function UsersPage({ token, notify }: any) {
                   </td>
                 </tr>
               ))}</tbody>
-            </table>
+            </table></div>
           )}
         </div>
       </div>
@@ -1040,6 +1080,8 @@ export default function Page() {
   const [userName, setUserName] = useState("");
   const [page, setPage] = useState("dashboard");
   const [toast, setToast] = useState({ msg:"", type:"info", show:false });
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   function notify(msg:string, type="info") {
     setToast({ msg, type, show:true });
@@ -1052,7 +1094,12 @@ export default function Page() {
     notify("Logged in successfully!","success");
   }
 
-  if(!token) return <LoginPage onLogin={handleLogin} />;
+  function goToPage(id:string) {
+    setPage(id);
+    if(isMobile) setSidebarOpen(false);
+  }
+
+  if(!token) return <><GlobalStyles /><LoginPage onLogin={handleLogin} /></>;
 
   const allNavItems = [
     { id:"dashboard",   label:"📊 Dashboard",      roles:["ADMIN","RECRUITER","RECRUITING_MANAGER","SALES","SALES_MANAGER"] },
@@ -1067,17 +1114,22 @@ export default function Page() {
   const navItems = allNavItems.filter(n=>n.roles.includes(userRole));
 
   return (
+    <>
+    <GlobalStyles />
     <div style={{ display:"flex", minHeight:"100vh", background:BG, color:TEXT, fontFamily:FONT }}>
-      {/* Background orbs */}
       <div style={{ position:"fixed", top:"10%", left:"15%", width:500, height:500, borderRadius:"50%", background:`radial-gradient(circle,rgba(0,212,255,0.06),transparent 70%)`, filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
       <div style={{ position:"fixed", bottom:"10%", right:"10%", width:400, height:400, borderRadius:"50%", background:`radial-gradient(circle,rgba(180,79,255,0.07),transparent 70%)`, filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
 
+      {/* Mobile overlay */}
+      {isMobile && sidebarOpen && (
+        <div onClick={()=>setSidebarOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:49, backdropFilter:"blur(2px)" }} />
+      )}
+
       {/* Sidebar */}
-      <div style={{ width:230, background:`rgba(6,7,26,0.9)`, backdropFilter:"blur(20px)", borderRight:`1px solid ${GLASS_BORDER}`, display:"flex", flexDirection:"column", flexShrink:0, position:"fixed", top:0, left:0, bottom:0, zIndex:50, overflowY:"auto" }}>
-        {/* Logo */}
+      <div style={{ width:230, background:`rgba(6,7,26,0.97)`, backdropFilter:"blur(20px)", borderRight:`1px solid ${GLASS_BORDER}`, display:"flex", flexDirection:"column", flexShrink:0, position:"fixed", top:0, left:0, bottom:0, zIndex:50, overflowY:"auto", transition:"transform 0.28s cubic-bezier(0.4,0,0.2,1)", transform:isMobile&&!sidebarOpen?"translateX(-100%)":"translateX(0)" }}>
         <div style={{ padding:"22px 18px 18px", borderBottom:`1px solid ${GLASS_BORDER}` }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:38, height:38, borderRadius:10, background:G1, display:"flex", alignItems:"center", justifyContent:"center", fontWeight:900, fontSize:14, color:"#fff", fontFamily:"monospace", boxShadow:"0 4px 16px rgba(0,212,255,0.35)", flexShrink:0 }}>{COMPANY.slice(0,2)}</div>
+            <img src="/PNG.png" alt={COMPANY} style={{ width:38, height:38, borderRadius:10, objectFit:"contain", background:"rgba(255,255,255,0.05)", padding:4, flexShrink:0 }} />
             <div>
               <div style={{ fontSize:18, fontWeight:900, letterSpacing:"-0.5px" }}>
                 <span style={{ color:TEXT }}>{COMPANY.slice(0,2)}</span>
@@ -1087,41 +1139,32 @@ export default function Page() {
             </div>
           </div>
         </div>
-
-        {/* Nav */}
         <div style={{ flex:1, padding:"16px 10px", display:"flex", flexDirection:"column", gap:2 }}>
-          {navItems.map(n=>{
-            const active = page===n.id;
-            return (
-              <button key={n.id} type="button" onClick={()=>setPage(n.id)} style={{
-                display:"flex", alignItems:"center", gap:9, padding:"10px 12px", borderRadius:10,
-                color:active?BRAND:MUTED, fontSize:13, fontWeight:active?600:400,
-                cursor:"pointer", border:"none",
-                background:active?"rgba(0,212,255,0.1)":"transparent",
-                width:"100%", textAlign:"left", fontFamily:FONT,
-                transition:"all 0.15s",
-                boxShadow:active?`inset 0 0 0 1px rgba(0,212,255,0.15)`:"none",
-              }}>{n.label}</button>
-            );
-          })}
+          {navItems.map(n=>{ const active=page===n.id; return (
+            <button key={n.id} type="button" onClick={()=>goToPage(n.id)} style={{ display:"flex", alignItems:"center", gap:9, padding:"10px 12px", borderRadius:10, color:active?BRAND:MUTED, fontSize:13, fontWeight:active?600:400, cursor:"pointer", border:"none", background:active?"rgba(0,212,255,0.1)":"transparent", width:"100%", textAlign:"left", fontFamily:FONT, transition:"all 0.15s", boxShadow:active?`inset 0 0 0 1px rgba(0,212,255,0.15)`:"none" }}>{n.label}</button>
+          );})}
         </div>
-
-        {/* Sidebar footer */}
         <div style={{ padding:"12px 10px", borderTop:`1px solid ${GLASS_BORDER}` }}>
-          <button type="button" onClick={()=>{ setToken(""); setUserRole(""); setUserName(""); }} style={{ display:"flex", alignItems:"center", gap:9, padding:"10px 12px", borderRadius:10, color:MUTED, fontSize:13, cursor:"pointer", border:"none", background:"transparent", width:"100%", textAlign:"left", fontFamily:FONT, transition:"color 0.15s" }}>↩ Sign Out</button>
+          <button type="button" onClick={()=>{ setToken(""); setUserRole(""); setUserName(""); }} style={{ display:"flex", alignItems:"center", gap:9, padding:"10px 12px", borderRadius:10, color:MUTED, fontSize:13, cursor:"pointer", border:"none", background:"transparent", width:"100%", textAlign:"left", fontFamily:FONT }}>↩ Sign Out</button>
           <div style={{ padding:"6px 12px 2px", fontSize:10, color:MUTED, lineHeight:1.6 }}>Developed with ❤️ in India<br />by <span style={{ color:BRAND, fontWeight:600 }}>Owais</span></div>
         </div>
       </div>
 
       {/* Main content */}
-      <div style={{ marginLeft:230, flex:1, minHeight:"100vh", position:"relative", zIndex:1 }}>
+      <div style={{ marginLeft:isMobile?0:230, flex:1, minHeight:"100vh", position:"relative", zIndex:1, maxWidth:isMobile?"100%":"calc(100% - 230px)" }}>
         {/* Top bar */}
-        <div style={{ position:"sticky", top:0, zIndex:40, background:"rgba(6,7,26,0.88)", backdropFilter:"blur(20px)", borderBottom:`1px solid ${GLASS_BORDER}`, padding:"10px 28px", display:"flex", justifyContent:"flex-end", alignItems:"center", gap:12 }}>
-          {userRole && <span style={{ fontSize:11, color:MUTED, background:"rgba(255,255,255,0.04)", padding:"4px 12px", borderRadius:20, border:`1px solid ${GLASS_BORDER}` }}>{ROLES.find(r=>r.value===userRole)?.label||userRole}</span>}
-          <NotificationBell token={token} notify={notify} />
+        <div style={{ position:"sticky", top:0, zIndex:40, background:"rgba(6,7,26,0.92)", backdropFilter:"blur(20px)", borderBottom:`1px solid ${GLASS_BORDER}`, padding:isMobile?"10px 14px":"10px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            {isMobile && <button type="button" onClick={()=>setSidebarOpen(!sidebarOpen)} style={{ background:"rgba(255,255,255,0.06)", border:`1px solid ${GLASS_BORDER}`, borderRadius:8, padding:"7px 11px", cursor:"pointer", color:TEXT, fontSize:18, lineHeight:1, fontFamily:FONT }}>☰</button>}
+            {isMobile && <span style={{ fontSize:15, fontWeight:800, background:G1, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>{COMPANY}</span>}
+          </div>
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+            {userRole && !isMobile && <span style={{ fontSize:11, color:MUTED, background:"rgba(255,255,255,0.04)", padding:"4px 12px", borderRadius:20, border:`1px solid ${GLASS_BORDER}` }}>{ROLES.find(r=>r.value===userRole)?.label||userRole}</span>}
+            <NotificationBell token={token} notify={notify} />
+          </div>
         </div>
 
-        {page==="dashboard"   && <Dashboard token={token} goTo={setPage} notify={notify} userName={userName} userRole={userRole} />}
+        {page==="dashboard"   && <Dashboard token={token} goTo={goToPage} notify={notify} userName={userName} userRole={userRole} />}
         {page==="candidates"  && <CandidatesPage token={token} notify={notify} />}
         {page==="jobs"        && <JobsPage token={token} notify={notify} />}
         {page==="clients"     && <DataPage title="Clients" token={token} notify={notify} endpoint="/api/clients" addTitle="Client"
@@ -1146,13 +1189,13 @@ export default function Page() {
         {page==="users"       && <UsersPage token={token} notify={notify} />}
       </div>
 
-      {/* Toast */}
       {toast.show && (
-        <div style={{ position:"fixed", bottom:24, right:24, background:"rgba(10,12,30,0.97)", backdropFilter:"blur(20px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:12, padding:"13px 20px", fontSize:13, zIndex:999, boxShadow:"0 12px 40px rgba(0,0,0,0.6)", maxWidth:340, borderLeft:`3px solid ${toast.type==="success"?"#10B981":toast.type==="error"?"#EF4444":BRAND}`, color:TEXT, display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ position:"fixed", bottom:20, right:isMobile?12:24, left:isMobile?12:"auto", background:"rgba(10,12,30,0.97)", backdropFilter:"blur(20px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:12, padding:"13px 18px", fontSize:13, zIndex:999, boxShadow:"0 12px 40px rgba(0,0,0,0.6)", borderLeft:`3px solid ${toast.type==="success"?"#10B981":toast.type==="error"?"#EF4444":BRAND}`, color:TEXT, display:"flex", alignItems:"center", gap:10 }}>
           <span>{toast.type==="success"?"✅":toast.type==="error"?"❌":"ℹ️"}</span>
           <span>{toast.msg}</span>
         </div>
       )}
     </div>
+    </>
   );
 }

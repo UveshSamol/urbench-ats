@@ -41,21 +41,21 @@ function GlobalStyles() {
   );
 }
 
-const BRAND    = process.env.NEXT_PUBLIC_BRAND_COLOR    || "#00D4FF";
-const ACCENT   = process.env.NEXT_PUBLIC_ACCENT_COLOR   || "#B44FFF";
-const BG       = process.env.NEXT_PUBLIC_BG_COLOR       || "#04050E";
-const SIDEBAR  = process.env.NEXT_PUBLIC_SIDEBAR_COLOR  || "#06071A";
-const CARD     = process.env.NEXT_PUBLIC_CARD_COLOR     || "#0A0C1E";
-const INPUT    = process.env.NEXT_PUBLIC_INPUT_COLOR    || "#07091A";
-const BORDER   = process.env.NEXT_PUBLIC_BORDER_COLOR   || "#1C1F3A";
-const TEXT     = process.env.NEXT_PUBLIC_TEXT_COLOR     || "#EDF0FA";
-const MUTED    = process.env.NEXT_PUBLIC_TEXT_MUTED     || "#525878";
+const BRAND    = process.env.NEXT_PUBLIC_BRAND_COLOR    || "#6C63FF";
+const ACCENT   = process.env.NEXT_PUBLIC_ACCENT_COLOR   || "#FF7A59";
+const BG       = process.env.NEXT_PUBLIC_BG_COLOR       || "#F6F7FB";
+const SIDEBAR  = process.env.NEXT_PUBLIC_SIDEBAR_COLOR  || "#FFFFFF";
+const CARD     = process.env.NEXT_PUBLIC_CARD_COLOR     || "#FFFFFF";
+const INPUT    = process.env.NEXT_PUBLIC_INPUT_COLOR    || "#F1F3FA";
+const BORDER   = process.env.NEXT_PUBLIC_BORDER_COLOR   || "#E6E8F2";
+const TEXT     = process.env.NEXT_PUBLIC_TEXT_COLOR     || "#1E1F3A";
+const MUTED    = process.env.NEXT_PUBLIC_TEXT_MUTED     || "#7C82A0";
 const FONT     = process.env.NEXT_PUBLIC_FONT           || "system-ui,-apple-system,sans-serif";
 const RADIUS   = process.env.NEXT_PUBLIC_BORDER_RADIUS  || "14px";
 const COMPANY  = process.env.NEXT_PUBLIC_COMPANY_NAME   || "UrBench";
 const TAGLINE  = process.env.NEXT_PUBLIC_COMPANY_TAGLINE|| "Building Trust, Exceeding Expectations";
 
-const G1           = `linear-gradient(135deg,${BRAND},#7B2FFF,${ACCENT})`;
+const G1 = `linear-gradient(135deg,#6C63FF,#8F88FF,#FF7A59)`;
 const GLASS        = `rgba(10,12,30,0.65)`;
 const GLASS_BORDER = `rgba(255,255,255,0.07)`;
 const GLASS_BLUR   = "blur(20px)";
@@ -254,10 +254,18 @@ function LoginPage({ onLogin }: { onLogin:(t:string)=>void }) {
 
       <div style={{ width:420, position:"relative", zIndex:1 }}>
         <div style={{ textAlign:"center", marginBottom:32 }}>
-          <div style={{ fontSize:40, fontWeight:900, letterSpacing:-1.5, marginBottom:6 }}>
-            <span style={{ color:TEXT }}>{COMPANY.slice(0,2)}</span>
-            <span style={{ background:G1, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>{COMPANY.slice(2)}</span>
-          </div>
+          <div style={{ marginBottom:12 }}>
+  <img 
+    src="/PNG.jpeg"
+    alt="Company Logo"
+    style={{ 
+      height: 70,
+      objectFit: "contain",
+      display: "block",
+      margin: "0 auto"
+    }} 
+  />
+</div>
           <div style={{ height:3, width:60, background:G1, borderRadius:2, margin:"0 auto 10px", boxShadow:"0 0 12px rgba(0,212,255,0.5)" }} />
           <div style={{ fontSize:13, color:MUTED, fontStyle:"italic" }}>{TAGLINE}</div>
         </div>
@@ -1129,7 +1137,16 @@ export default function Page() {
       <div style={{ width:230, background:`rgba(6,7,26,0.97)`, backdropFilter:"blur(20px)", borderRight:`1px solid ${GLASS_BORDER}`, display:"flex", flexDirection:"column", flexShrink:0, position:"fixed", top:0, left:0, bottom:0, zIndex:50, overflowY:"auto", transition:"transform 0.28s cubic-bezier(0.4,0,0.2,1)", transform:isMobile&&!sidebarOpen?"translateX(-100%)":"translateX(0)" }}>
         <div style={{ padding:"22px 18px 18px", borderBottom:`1px solid ${GLASS_BORDER}` }}>
           <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            <img src="/PNG.png" alt={COMPANY} style={{ width:38, height:38, borderRadius:10, objectFit:"contain", background:"rgba(255,255,255,0.05)", padding:4, flexShrink:0 }} />
+            <img 
+  src="/PNG.png"
+  alt="Company Logo"
+  style={{ 
+    width: 45,
+    height: 45,
+    objectFit: "contain",
+    borderRadius: 8
+  }} 
+/>
             <div>
               <div style={{ fontSize:18, fontWeight:900, letterSpacing:"-0.5px" }}>
                 <span style={{ color:TEXT }}>{COMPANY.slice(0,2)}</span>

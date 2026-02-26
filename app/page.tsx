@@ -345,16 +345,72 @@ function AITools({ token, notify }: any) {
   const [loading, setLoading] = useState(false);
   const [cid, setCid] = useState("");
   const [jid, setJid] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [inputMode, setInputMode] = useState<"text" | "file">("text");
 
-  function run() {
+  async function extractTextFromFile(f: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // For text-based files just return the content
+        resolve(result);
+      };
+      reader.onerror = reject;
+      reader.readAsText(f);
+    });
+  }
+
+  async function run() {
     setLoading(true);
     setRes(null);
-    const ep = tab === "resume" ? "/api/ai/parse-resume" : tab === "jd" ? "/api/ai/parse-jd" : "/api/ai/match";
-    const bd = tab === "match" ? { candidateId: cid, jobId: jid } : { text: txt, resumeText: txt, description: txt };
-    api(ep, "POST", bd, token)
-      .then(d => { setRes(d); notify("AI analysis complete!", "success"); })
-      .catch(e => notify(e.message, "error"))
-      .finally(() => setLoading(false));
+    try {
+      const ep = tab === "resume" ? "/api/ai/parse-resume" : tab === "jd" ? "/api/ai/parse-jd" : "/api/ai/match";
+
+      if (tab === "match") {
+        const d = await api(ep, "POST", { candidateId: cid, jobId: jid }, token);
+        setRes(d);
+        notify("AI analysis complete!", "success");
+        return;
+      }
+
+      let content = txt;
+
+      if (inputMode === "file" && file) {
+        if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
+          // Send as base64 for PDF
+          const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+              const result = reader.result as string;
+              resolve(result.split(",")[1]);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+          const d = await api(ep, "POST", { base64Pdf: base64, fileName: file.name }, token);
+          setRes(d);
+          notify("AI analysis complete!", "success");
+          return;
+        } else {
+          // Word or text file — read as text
+          content = await extractTextFromFile(file);
+        }
+      }
+
+      if (!content.trim()) {
+        notify("Please paste text or upload a file", "error");
+        return;
+      }
+
+      const d = await api(ep, "POST", { text: content, resumeText: content, description: content }, token);
+      setRes(d);
+      notify("AI analysis complete!", "success");
+    } catch (e: any) {
+      notify(e.message, "error");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -363,7 +419,7 @@ function AITools({ token, notify }: any) {
       <div style={S.page}>
         <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
           {[{ id: "resume", l: "Parse Resume" }, { id: "jd", l: "Parse JD" }, { id: "match", l: "AI Match" }].map(t => (
-            <button key={t.id} type="button" onClick={() => { setTab(t.id); setRes(null); setTxt(""); }}
+            <button key={t.id} type="button" onClick={() => { setTab(t.id); setRes(null); setTxt(""); setFile(null); }}
               style={{ padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: tab === t.id ? 600 : 400, cursor: "pointer", border: tab === t.id ? "none" : `1px solid ${BORDER}`, background: tab === t.id ? `linear-gradient(90deg,${BRAND},#7B2FFF,${ACCENT})` : CARD, color: tab === t.id ? "#fff" : MUTED }}>
               {t.l}
             </button>
@@ -372,20 +428,48 @@ function AITools({ token, notify }: any) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div style={{ ...S.card, padding: 18 }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: TEXT }}>
-              {tab === "resume" ? "Paste Resume" : tab === "jd" ? "Paste Job Description" : "Match Candidate to Job"}
+              {tab === "resume" ? "Resume Input" : tab === "jd" ? "Job Description Input" : "Match Candidate to Job"}
             </div>
+
             {tab === "match" ? (
               <>
                 <Field label="Candidate ID"><input style={S.inp} value={cid} onChange={e => setCid(e.target.value)} placeholder="Enter candidate ID" /></Field>
                 <Field label="Job ID"><input style={S.inp} value={jid} onChange={e => setJid(e.target.value)} placeholder="Enter job ID" /></Field>
               </>
             ) : (
-              <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="Paste content here..." style={{ ...S.inp, minHeight: 200, resize: "vertical" }} />
+              <>
+                {/* Toggle text vs file */}
+                <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
+                  {[{ id: "text", l: "✏️ Paste Text" }, { id: "file", l: "📎 Upload File" }].map(m => (
+                    <button key={m.id} type="button" onClick={() => setInputMode(m.id as any)}
+                      style={{ padding: "5px 12px", borderRadius: 6, fontSize: 12, cursor: "pointer", border: `1px solid ${BORDER}`, background: inputMode === m.id ? BRAND : "transparent", color: inputMode === m.id ? "#fff" : MUTED }}>
+                      {m.l}
+                    </button>
+                  ))}
+                </div>
+
+                {inputMode === "text" ? (
+                  <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="Paste resume or JD text here..." style={{ ...S.inp, minHeight: 200, resize: "vertical" }} />
+                ) : (
+                  <div style={{ border: `2px dashed ${BORDER}`, borderRadius: 8, padding: 24, textAlign: "center" }}>
+                    <div style={{ fontSize: 32, marginBottom: 8 }}>📄</div>
+                    <div style={{ fontSize: 13, color: MUTED, marginBottom: 12 }}>Upload PDF or Word document</div>
+                    <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={e => setFile(e.target.files?.[0] || null)}
+                      style={{ display: "none" }} id="fileInput" />
+                    <label htmlFor="fileInput" style={{ ...S.btn, cursor: "pointer" }}>
+                      Choose File
+                    </label>
+                    {file && <div style={{ marginTop: 12, fontSize: 12, color: BRAND }}>✅ {file.name}</div>}
+                  </div>
+                )}
+              </>
             )}
+
             <button type="button" onClick={run} disabled={loading} style={{ ...S.btn, marginTop: 12, opacity: loading ? 0.6 : 1 }}>
               {loading ? "Analyzing..." : "⚡ Run AI Analysis"}
             </button>
           </div>
+
           <div style={{ ...S.card, padding: 18 }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: TEXT }}>Results</div>
             {!res ? (
@@ -407,9 +491,7 @@ function AITools({ token, notify }: any) {
                               <span key={i} style={{ background: BORDER, padding: "2px 8px", borderRadius: 10, fontSize: 11, color: TEXT }}>{v}</span>
                             ))}
                           </div>
-                        ) : (
-                          <span style={{ color: MUTED }}>None</span>
-                        )
+                        ) : <span style={{ color: MUTED }}>None</span>
                       ) : typeof value === "number" ? (
                         <span style={{ color: BRAND, fontWeight: 600, fontSize: 18 }}>{value}</span>
                       ) : (

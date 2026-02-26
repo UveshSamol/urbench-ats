@@ -971,16 +971,17 @@ export default function Page() {
 
   if (!token) return <LoginPage onLogin={handleLogin} />;
 
-  const navItems = [
-    { id: "dashboard", label: "📊 Dashboard" },
-    { id: "candidates", label: "👥 Candidates" },
-    { id: "jobs", label: "💼 Jobs" },
-    { id: "clients", label: "🏢 Clients" },
-    { id: "submissions", label: "📨 Submissions" },
-    { id: "analytics", label: "📈 Analytics" },
-    { id: "ai", label: "🤖 AI Tools" },
-    { id: "users", label: "👤 Manage Users" },
+  const allNavItems = [
+    { id: "dashboard", label: "📊 Dashboard", roles: ["ADMIN", "RECRUITER", "RECRUITING_MANAGER", "SALES", "SALES_MANAGER"] },
+    { id: "candidates", label: "👥 Candidates", roles: ["ADMIN", "RECRUITER", "RECRUITING_MANAGER"] },
+    { id: "jobs", label: "💼 Jobs", roles: ["ADMIN", "RECRUITER", "RECRUITING_MANAGER", "SALES", "SALES_MANAGER"] },
+    { id: "clients", label: "🏢 Clients", roles: ["ADMIN", "SALES", "SALES_MANAGER"] },
+    { id: "submissions", label: "📨 Submissions", roles: ["ADMIN", "RECRUITER", "RECRUITING_MANAGER", "SALES", "SALES_MANAGER"] },
+    { id: "analytics", label: "📈 Analytics", roles: ["ADMIN", "RECRUITING_MANAGER", "SALES_MANAGER"] },
+    { id: "ai", label: "🤖 AI Tools", roles: ["ADMIN", "RECRUITER", "RECRUITING_MANAGER"] },
+    { id: "users", label: "👤 Manage Users", roles: ["ADMIN"] },
   ];
+  const navItems = allNavItems.filter(n => n.roles.includes(userRole));
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: BG, color: TEXT, fontFamily: FONT }}>

@@ -4,7 +4,6 @@ import { withAuth, withManager, AuthenticatedRequest } from "@/lib/middleware/wi
 import { auditLog } from "@/lib/audit";
 import { generateId } from "@/lib/autoId";
 import { notifyManagers, notifySalesManagers, createNotification } from "@/lib/notifications";
-import { Role } from "@prisma/client";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -39,8 +38,8 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
     ...(status && { status }),
   };
 
-  // Recruiters only see their own candidates' submissions
-  if (req.user.role === Role.RECRUITER) {
+ // Recruiters only see their own candidates' submissions
+  if (req.user.role === "RECRUITER") {
     where.candidate = { recruiterId: req.user.userId };
   }
 
@@ -58,7 +57,7 @@ export const GET = withAuth(async (req: AuthenticatedRequest) => {
 
 export const POST = withAuth(async (req: AuthenticatedRequest) => {
   // Only recruiters and recruiting managers can create submissions
-  if (![Role.RECRUITER, Role.RECRUITING_MANAGER, Role.ADMIN].includes(req.user.role)) {
+  if (!["RECRUITER", "RECRUITING_MANAGER", "ADMIN"].includes(req.user.role)) {
     return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
   }
 
@@ -154,11 +153,11 @@ export const PATCH = withAuth(async (req: AuthenticatedRequest, ctx?: any) => {
   const managerStatuses = ["approved_internally", "rejected_internally"];
   const salesStatuses = ["submitted_to_vendor", "submitted_to_client", "rejected_by_client", "placed", "withdrawn"];
 
-  if (managerStatuses.includes(status) && ![Role.ADMIN, Role.RECRUITING_MANAGER].includes(role)) {
+  if (managerStatuses.includes(status) && !["ADMIN", "RECRUITING_MANAGER"].includes(role)) {
     return NextResponse.json({ error: "FORBIDDEN", message: "Only managers can approve or reject internally" }, { status: 403 });
   }
 
-  if (salesStatuses.includes(status) && ![Role.ADMIN, Role.SALES_MANAGER, Role.SALES].includes(role)) {
+  if (salesStatuses.includes(status) && !["ADMIN", "SALES_MANAGER", "SALES"].includes(role)) {
     return NextResponse.json({ error: "FORBIDDEN", message: "Only sales can update client submission status" }, { status: 403 });
   }
 

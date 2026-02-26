@@ -34,11 +34,30 @@ const fmt = (d: string) => d ? new Date(d).toLocaleDateString("en-US", { month: 
 const bc = (s: string) => {
   if (!s) return "#7B8BA8";
   const l = s.toLowerCase();
-  if (["active","open","placed","completed"].some(x => l.includes(x))) return "#10B981";
-  if (["pending","submitted","interview","review"].some(x => l.includes(x))) return "#F59E0B";
-  if (["rejected","closed","cancel"].some(x => l.includes(x))) return "#EF4444";
+  if (["active","open","placed","completed","approved"].some(x => l.includes(x))) return "#10B981";
+  if (["pending","submitted","interview","review","vendor","client"].some(x => l.includes(x))) return "#F59E0B";
+  if (["rejected","closed","cancel","withdrawn"].some(x => l.includes(x))) return "#EF4444";
   return BRAND;
 };
+
+const SUBMISSION_STATUSES = [
+  { value: "pending_review", label: "Pending Review" },
+  { value: "approved_internally", label: "Approved Internally" },
+  { value: "rejected_internally", label: "Rejected Internally" },
+  { value: "submitted_to_vendor", label: "Submitted to Prime Vendor" },
+  { value: "submitted_to_client", label: "Submitted to End Client" },
+  { value: "rejected_by_client", label: "Rejected by Client" },
+  { value: "placed", label: "Placed" },
+  { value: "withdrawn", label: "Withdrawn" },
+];
+
+const ROLES = [
+  { value: "RECRUITER", label: "Recruiter" },
+  { value: "RECRUITING_MANAGER", label: "Recruiting Manager" },
+  { value: "SALES", label: "Sales" },
+  { value: "SALES_MANAGER", label: "Sales Manager" },
+  { value: "ADMIN", label: "Admin" },
+];
 
 const S = {
   inp: { width: "100%", padding: "9px 12px", background: INPUT, border: `1px solid ${BORDER}`, borderRadius: 8, color: TEXT, fontSize: 13, outline: "none", fontFamily: FONT } as React.CSSProperties,
@@ -53,7 +72,8 @@ const S = {
 
 function Badge({ children, status }: { children: string; status?: string }) {
   const c = bc(status || children);
-  return <span style={{ display: "inline-flex", padding: "2px 9px", borderRadius: 14, fontSize: 11, fontWeight: 600, background: c + "15", color: c }}>{children}</span>;
+  const label = SUBMISSION_STATUSES.find(s => s.value === children)?.label || children;
+  return <span style={{ display: "inline-flex", padding: "2px 9px", borderRadius: 14, fontSize: 11, fontWeight: 600, background: c + "15", color: c }}>{label}</span>;
 }
 
 function Stat({ label, value, color }: { label: string; value: string | number; color: string }) {
@@ -105,6 +125,50 @@ function SimpleBar({ data, labelKey, valueKey }: { data: any[]; labelKey: string
   );
 }
 
+function NotificationBell({ token, notify }: any) {
+  const [notifs, setNotifs] = useState<any[]>([]);
+  const [unread, setUnread] = useState(0);
+  const [open, setOpen] = useState(false);
+
+  function load() {
+    api("/api/notifications", "GET", null, token).then(d => { setNotifs(d.data || []); setUnread(d.unreadCount || 0); }).catch(() => {});
+  }
+
+  useEffect(() => { load(); const t = setInterval(load, 30000); return () => clearInterval(t); }, [token]);
+
+  function markAllRead() {
+    api("/api/notifications", "POST", null, token).then(() => { setUnread(0); setNotifs(n => n.map(x => ({ ...x, isRead: true }))); }).catch(() => {});
+  }
+
+  return (
+    <div style={{ position: "relative" }}>
+      <button type="button" onClick={() => { setOpen(!open); if (!open) load(); }}
+        style={{ position: "relative", background: "transparent", border: `1px solid ${BORDER}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer", color: TEXT, fontSize: 16 }}>
+        🔔
+        {unread > 0 && <span style={{ position: "absolute", top: -4, right: -4, background: "#EF4444", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: "50%", width: 16, height: 16, display: "flex", alignItems: "center", justifyContent: "center" }}>{unread > 9 ? "9+" : unread}</span>}
+      </button>
+      {open && (
+        <div style={{ position: "absolute", top: 40, right: 0, width: 340, background: CARD, border: `1px solid ${BORDER}`, borderRadius: 12, boxShadow: "0 12px 40px rgba(0,0,0,0.5)", zIndex: 200 }}>
+          <div style={{ padding: "12px 16px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 13, fontWeight: 600, color: TEXT }}>Notifications {unread > 0 && <span style={{ color: BRAND }}>({unread})</span>}</span>
+            {unread > 0 && <button type="button" onClick={markAllRead} style={{ fontSize: 11, color: BRAND, background: "none", border: "none", cursor: "pointer" }}>Mark all read</button>}
+          </div>
+          <div style={{ maxHeight: 360, overflowY: "auto" }}>
+            {notifs.length === 0 ? <div style={{ padding: 24, textAlign: "center", color: MUTED, fontSize: 13 }}>No notifications</div> :
+              notifs.map((n: any, i: number) => (
+                <div key={i} style={{ padding: "12px 16px", borderBottom: `1px solid ${BORDER}`, background: n.isRead ? "transparent" : "rgba(0,212,255,0.04)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: n.isRead ? MUTED : TEXT, marginBottom: 3 }}>{n.title}</div>
+                  <div style={{ fontSize: 11, color: MUTED }}>{n.message}</div>
+                  <div style={{ fontSize: 10, color: MUTED, marginTop: 4 }}>{fmt(n.createdAt)}</div>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LoginPage({ onLogin }: { onLogin: (t: string) => void }) {
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
@@ -134,14 +198,14 @@ function LoginPage({ onLogin }: { onLogin: (t: string) => void }) {
         <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 16, padding: "36px 32px" }}>
           <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4, color: TEXT }}>Welcome back</div>
           <div style={{ color: MUTED, fontSize: 13, marginBottom: 28 }}>Sign in to your ATS dashboard</div>
-          <Field label="Email"><input type="email" value={email} onChange={e => setEmail(e.target.value)} style={S.inp} /></Field>
-          <Field label="Password"><input type="password" value={pw} onChange={e => setPw(e.target.value)} style={S.inp} /></Field>
+          <Field label="Email"><input type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} style={S.inp} /></Field>
+          <Field label="Password"><input type="password" value={pw} onChange={e => setPw(e.target.value)} onKeyDown={e => e.key === "Enter" && submit()} style={S.inp} /></Field>
           {error && <div style={{ color: "#EF4444", fontSize: 12, marginBottom: 14, padding: "8px 12px", background: "rgba(239,68,68,0.08)", borderRadius: 8 }}>{error}</div>}
           <button type="button" onClick={submit} disabled={loading} style={{ ...S.btn, width: "100%", justifyContent: "center", padding: "12px", fontSize: 14, opacity: loading ? 0.7 : 1 }}>
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </div>
-        <div style={{ textAlign: "center", marginTop: 20, fontSize: 11, color: MUTED }}>Developed by <span style={{ color: MUTED }}>{COMPANY} LLC</span> — SAP Staffing Solutions</div>
+        <div style={{ textAlign: "center", marginTop: 20, fontSize: 11, color: MUTED }}>Developed with ❤️ in India by <span style={{ color: BRAND }}>Owais</span></div>
       </div>
     </div>
   );
@@ -153,21 +217,18 @@ function Dashboard({ token, goTo, notify }: any) {
 
   useEffect(() => {
     Promise.all([
-      api("/api/candidates", "GET", null, token).catch(() => []),
-      api("/api/jobs", "GET", null, token).catch(() => []),
-      api("/api/clients", "GET", null, token).catch(() => []),
-      api("/api/submissions", "GET", null, token).catch(() => []),
-    ]).then(r => {
-      setD({
-        c: r[0]?.data || r[0]?.candidates || (Array.isArray(r[0]) ? r[0] : []),
-        j: r[1]?.data || r[1]?.jobs || (Array.isArray(r[1]) ? r[1] : []),
-        cl: r[2]?.data || r[2]?.clients || (Array.isArray(r[2]) ? r[2] : []),
-        s: r[3]?.data || r[3]?.submissions || (Array.isArray(r[3]) ? r[3] : []),
-      });
-    }).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
+      api("/api/candidates", "GET", null, token).catch(() => ({ data: [] })),
+      api("/api/jobs", "GET", null, token).catch(() => ({ data: [] })),
+      api("/api/clients", "GET", null, token).catch(() => ({ data: [] })),
+      api("/api/submissions", "GET", null, token).catch(() => ({ data: [] })),
+    ]).then(r => setD({ c: r[0]?.data || [], j: r[1]?.data || [], cl: r[2]?.data || [], s: r[3]?.data || [] }))
+      .catch(e => notify(e.message, "error")).finally(() => setLoading(false));
   }, [token]);
 
   if (loading) return <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "80vh", color: MUTED }}>Loading...</div>;
+
+  const hotJobs = d.j.filter((j: any) => j.isHot);
+  const pendingReview = d.s.filter((s: any) => s.status === "pending_review");
 
   return (
     <div>
@@ -183,6 +244,22 @@ function Dashboard({ token, goTo, notify }: any) {
           <Stat label="Clients" value={d.cl.length} color={ACCENT} />
           <Stat label="Submissions" value={d.s.length} color="#F59E0B" />
         </div>
+        {(hotJobs.length > 0 || pendingReview.length > 0) && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 24 }}>
+            {hotJobs.length > 0 && (
+              <div style={{ ...S.card, padding: 16, border: `1px solid #F59E0B40` }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "#F59E0B", marginBottom: 10 }}>🔥 Hot Jobs ({hotJobs.length})</div>
+                {hotJobs.slice(0, 3).map((j: any, i: number) => <div key={i} style={{ fontSize: 12, color: TEXT, padding: "6px 0", borderBottom: `1px solid ${BORDER}` }}>{j.title} — {j.client?.name}</div>)}
+              </div>
+            )}
+            {pendingReview.length > 0 && (
+              <div style={{ ...S.card, padding: 16, border: `1px solid ${BRAND}40` }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: BRAND, marginBottom: 10 }}>⏳ Pending Review ({pendingReview.length})</div>
+                {pendingReview.slice(0, 3).map((s: any, i: number) => <div key={i} style={{ fontSize: 12, color: TEXT, padding: "6px 0", borderBottom: `1px solid ${BORDER}` }}>{s.candidate?.name} → {s.job?.title}</div>)}
+              </div>
+            )}
+          </div>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <div style={S.card}>
             <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", justifyContent: "space-between" }}>
@@ -192,8 +269,8 @@ function Dashboard({ token, goTo, notify }: any) {
             {d.c.length === 0 && <div style={{ padding: 24, textAlign: "center", color: MUTED, fontSize: 13 }}>No candidates yet</div>}
             {d.c.slice(0, 5).map((x: any, i: number) => (
               <div key={i} style={{ padding: "11px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div><div style={{ fontSize: 13, fontWeight: 500, color: TEXT }}>{x.firstName || x.name || "—"} {x.lastName || ""}</div><div style={{ fontSize: 11, color: MUTED }}>{x.email || "—"}</div></div>
-                <Badge status={x.status}>{x.status || "Active"}</Badge>
+                <div><div style={{ fontSize: 13, fontWeight: 500, color: TEXT }}>{x.name || "—"}</div><div style={{ fontSize: 11, color: MUTED }}>{x.candidateId || ""}{x.email ? ` · ${x.email}` : ""}</div></div>
+                <Badge status={x.status}>{x.status || "sourcing"}</Badge>
               </div>
             ))}
           </div>
@@ -205,7 +282,7 @@ function Dashboard({ token, goTo, notify }: any) {
             {d.j.length === 0 && <div style={{ padding: 24, textAlign: "center", color: MUTED, fontSize: 13 }}>No jobs yet</div>}
             {d.j.slice(0, 5).map((x: any, i: number) => (
               <div key={i} style={{ padding: "11px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <div><div style={{ fontSize: 13, fontWeight: 500, color: TEXT }}>{x.title || "—"}</div><div style={{ fontSize: 11, color: MUTED }}>{x.client?.name || x.location || "—"}</div></div>
+                <div><div style={{ fontSize: 13, fontWeight: 500, color: TEXT }}>{x.isHot ? "🔥 " : ""}{x.title || "—"}</div><div style={{ fontSize: 11, color: MUTED }}>{x.jobId || ""}{x.client?.name ? ` · ${x.client.name}` : ""}</div></div>
                 <Badge status={x.status}>{x.status || "Open"}</Badge>
               </div>
             ))}
@@ -226,21 +303,15 @@ function DataPage({ title, token, notify, endpoint, columns, addTitle, addFields
 
   function load() {
     setLoading(true);
-    api(endpoint, "GET", null, token).then(d => setList(d.data || d[Object.keys(d).find((k: string) => Array.isArray(d[k])) || ""] || (Array.isArray(d) ? d : []))).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
+    api(endpoint, "GET", null, token).then(d => setList(d.data || [])).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
   }
   useEffect(() => { load(); }, [token]);
 
-  const filtered = list.filter(x => {
-    if (!search) return true;
-    return JSON.stringify(x).toLowerCase().includes(search.toLowerCase());
-  });
+  const filtered = list.filter(x => !search || JSON.stringify(x).toLowerCase().includes(search.toLowerCase()));
 
   function save() {
     setSaving(true);
-    const body = { ...form };
-    if (body.billRate) body.billRate = Number(body.billRate) || 0;
-    if (body.payRate) body.payRate = Number(body.payRate) || 0;
-    api(endpoint, "POST", body, token)
+    api(endpoint, "POST", form, token)
       .then(() => { notify(`${addTitle} added!`, "success"); setModal(false); setForm({}); load(); })
       .catch(e => notify(e.message, "error"))
       .finally(() => setSaving(false));
@@ -264,9 +335,7 @@ function DataPage({ title, token, notify, endpoint, columns, addTitle, addFields
                 <thead><tr>{columns.map((c: any) => <th key={c.key} style={S.th}>{c.label}</th>)}</tr></thead>
                 <tbody>{filtered.map((x: any, i: number) => (
                   <tr key={i}>{columns.map((c: any) => (
-                    <td key={c.key} style={c.isName ? S.tdn : S.td}>
-                      {c.render ? c.render(x) : (c.path ? c.path.split(".").reduce((o: any, k: string) => o?.[k], x) || "—" : x[c.key] || "—")}
-                    </td>
+                    <td key={c.key} style={c.isName ? S.tdn : S.td}>{c.render ? c.render(x) : x[c.key] || "—"}</td>
                   ))}</tr>
                 ))}</tbody>
               </table>}
@@ -276,14 +345,9 @@ function DataPage({ title, token, notify, endpoint, columns, addTitle, addFields
         <Modal title={`Add ${addTitle}`} onClose={() => setModal(false)} onSave={save} saving={saving}>
           {addFields.map((f: any) => (
             <Field key={f.key} label={f.label}>
-              {f.type === "textarea" ?
-                <textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form[f.key] || ""} onChange={e => setForm({ ...form, [f.key]: e.target.value })} /> :
-                f.type === "select" ?
-                  <select style={S.inp} value={form[f.key] || f.options[0].value} onChange={e => setForm({ ...form, [f.key]: e.target.value })}>
-                    {f.options.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                  </select> :
-                  <input style={S.inp} type={f.type || "text"} value={form[f.key] || ""} onChange={e => setForm({ ...form, [f.key]: e.target.value })} placeholder={f.placeholder || ""} />
-              }
+              {f.type === "textarea" ? <textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form[f.key] || ""} onChange={e => setForm({ ...form, [f.key]: e.target.value })} /> :
+                f.type === "select" ? <select style={S.inp} value={form[f.key] || f.options[0].value} onChange={e => setForm({ ...form, [f.key]: e.target.value })}>{f.options.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}</select> :
+                  <input style={S.inp} type={f.type || "text"} value={form[f.key] || ""} onChange={e => setForm({ ...form, [f.key]: e.target.value })} placeholder={f.placeholder || ""} />}
             </Field>
           ))}
         </Modal>
@@ -304,7 +368,7 @@ function Analytics({ token }: any) {
     ]).then(r => { setRec(r[0]); setFc(r[1]); }).finally(() => setLoading(false));
   }, [token]);
 
-  const cd = fc?.months || fc?.forecast || [{ month: "Mar", revenue: 12000 }, { month: "Apr", revenue: 18000 }, { month: "May", revenue: 24000 }, { month: "Jun", revenue: 30000 }];
+  const cd = fc?.months || [{ month: "Mar", revenue: 12000 }, { month: "Apr", revenue: 18000 }, { month: "May", revenue: 24000 }, { month: "Jun", revenue: 30000 }];
 
   return (
     <div>
@@ -312,10 +376,10 @@ function Analytics({ token }: any) {
       <div style={S.page}>
         {loading ? <div style={{ padding: 60, textAlign: "center", color: MUTED }}>Loading...</div> : <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 24 }}>
-            <Stat label="Total Placements" value={rec?.totalPlacements || rec?.placements || 0} color="#10B981" />
-            <Stat label="Active Submissions" value={rec?.activeSubmissions || rec?.submissions || 0} color={BRAND} />
-            <Stat label="Fill Rate" value={`${rec?.fillRate || rec?.fill_rate || 0}%`} color={ACCENT} />
-            <Stat label="Revenue" value={`$${Math.floor((rec?.revenue || rec?.totalRevenue || 0) / 1000)}k`} color="#F59E0B" />
+            <Stat label="Total Placements" value={rec?.totalPlacements || 0} color="#10B981" />
+            <Stat label="Active Submissions" value={rec?.activeSubmissions || 0} color={BRAND} />
+            <Stat label="Fill Rate" value={`${rec?.fillRate || 0}%`} color={ACCENT} />
+            <Stat label="Revenue" value={`$${Math.floor((rec?.revenue || 0) / 1000)}k`} color="#F59E0B" />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div style={{ ...S.card, padding: 18 }}>
@@ -348,69 +412,28 @@ function AITools({ token, notify }: any) {
   const [file, setFile] = useState<File | null>(null);
   const [inputMode, setInputMode] = useState<"text" | "file">("text");
 
-  async function extractTextFromFile(f: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        // For text-based files just return the content
-        resolve(result);
-      };
-      reader.onerror = reject;
-      reader.readAsText(f);
-    });
-  }
-
   async function run() {
-    setLoading(true);
-    setRes(null);
+    setLoading(true); setRes(null);
     try {
       const ep = tab === "resume" ? "/api/ai/parse-resume" : tab === "jd" ? "/api/ai/parse-jd" : "/api/ai/match";
-
       if (tab === "match") {
         const d = await api(ep, "POST", { candidateId: cid, jobId: jid }, token);
-        setRes(d);
-        notify("AI analysis complete!", "success");
-        return;
+        setRes(d); notify("AI analysis complete!", "success"); return;
       }
-
       let content = txt;
-
       if (inputMode === "file" && file) {
-        if (file.type === "application/pdf" || file.name.endsWith(".pdf")) {
-          // Send as base64 for PDF
-          const base64 = await new Promise<string>((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-              const result = reader.result as string;
-              resolve(result.split(",")[1]);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-          });
+        if (file.name.endsWith(".pdf")) {
+          const base64 = await new Promise<string>((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve((r.result as string).split(",")[1]); r.onerror = reject; r.readAsDataURL(file); });
           const d = await api(ep, "POST", { base64Pdf: base64, fileName: file.name }, token);
-          setRes(d);
-          notify("AI analysis complete!", "success");
-          return;
+          setRes(d); notify("AI analysis complete!", "success"); return;
         } else {
-          // Word or text file — read as text
-          content = await extractTextFromFile(file);
+          content = await new Promise<string>((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result as string); r.onerror = reject; r.readAsText(file); });
         }
       }
-
-      if (!content.trim()) {
-        notify("Please paste text or upload a file", "error");
-        return;
-      }
-
+      if (!content.trim()) { notify("Please paste text or upload a file", "error"); return; }
       const d = await api(ep, "POST", { text: content, resumeText: content, description: content }, token);
-      setRes(d);
-      notify("AI analysis complete!", "success");
-    } catch (e: any) {
-      notify(e.message, "error");
-    } finally {
-      setLoading(false);
-    }
+      setRes(d); notify("AI analysis complete!", "success");
+    } catch (e: any) { notify(e.message, "error"); } finally { setLoading(false); }
   }
 
   return (
@@ -420,90 +443,47 @@ function AITools({ token, notify }: any) {
         <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
           {[{ id: "resume", l: "Parse Resume" }, { id: "jd", l: "Parse JD" }, { id: "match", l: "AI Match" }].map(t => (
             <button key={t.id} type="button" onClick={() => { setTab(t.id); setRes(null); setTxt(""); setFile(null); }}
-              style={{ padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: tab === t.id ? 600 : 400, cursor: "pointer", border: tab === t.id ? "none" : `1px solid ${BORDER}`, background: tab === t.id ? `linear-gradient(90deg,${BRAND},#7B2FFF,${ACCENT})` : CARD, color: tab === t.id ? "#fff" : MUTED }}>
-              {t.l}
-            </button>
+              style={{ padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: tab === t.id ? 600 : 400, cursor: "pointer", border: tab === t.id ? "none" : `1px solid ${BORDER}`, background: tab === t.id ? `linear-gradient(90deg,${BRAND},#7B2FFF,${ACCENT})` : CARD, color: tab === t.id ? "#fff" : MUTED }}>{t.l}</button>
           ))}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div style={{ ...S.card, padding: 18 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: TEXT }}>
-              {tab === "resume" ? "Resume Input" : tab === "jd" ? "Job Description Input" : "Match Candidate to Job"}
-            </div>
-
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: TEXT }}>{tab === "resume" ? "Resume Input" : tab === "jd" ? "Job Description Input" : "Match Candidate to Job"}</div>
             {tab === "match" ? (
               <>
-                <Field label="Candidate ID">
-  <input style={S.inp} value={cid} onChange={e => setCid(e.target.value)} placeholder="Go to Candidates page → click ID to copy" />
-</Field>
-<Field label="Job ID">
-  <input style={S.inp} value={jid} onChange={e => setJid(e.target.value)} placeholder="Go to Jobs page → click ID to copy" />
-</Field>
-<div style={{ fontSize: 11, color: MUTED, padding: "6px 10px", background: INPUT, borderRadius: 6, border: `1px solid ${BORDER}` }}>
-  💡 Go to <span style={{ color: BRAND, cursor: "pointer" }} onClick={() => {}}>Candidates</span> or <span style={{ color: BRAND }}>Jobs</span> page — click any row ID to copy it, then paste here.
-</div>
+                <Field label="Candidate ID"><input style={S.inp} value={cid} onChange={e => setCid(e.target.value)} placeholder="e.g. CAN-0001 — find in Candidates page" /></Field>
+                <Field label="Job ID"><input style={S.inp} value={jid} onChange={e => setJid(e.target.value)} placeholder="e.g. JOB-0001 — find in Jobs page" /></Field>
               </>
             ) : (
               <>
-                {/* Toggle text vs file */}
                 <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>
                   {[{ id: "text", l: "✏️ Paste Text" }, { id: "file", l: "📎 Upload File" }].map(m => (
                     <button key={m.id} type="button" onClick={() => setInputMode(m.id as any)}
-                      style={{ padding: "5px 12px", borderRadius: 6, fontSize: 12, cursor: "pointer", border: `1px solid ${BORDER}`, background: inputMode === m.id ? BRAND : "transparent", color: inputMode === m.id ? "#fff" : MUTED }}>
-                      {m.l}
-                    </button>
+                      style={{ padding: "5px 12px", borderRadius: 6, fontSize: 12, cursor: "pointer", border: `1px solid ${BORDER}`, background: inputMode === m.id ? BRAND : "transparent", color: inputMode === m.id ? "#fff" : MUTED }}>{m.l}</button>
                   ))}
                 </div>
-
-                {inputMode === "text" ? (
-                  <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="Paste resume or JD text here..." style={{ ...S.inp, minHeight: 200, resize: "vertical" }} />
-                ) : (
+                {inputMode === "text" ? <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="Paste resume or JD text here..." style={{ ...S.inp, minHeight: 200, resize: "vertical" }} /> : (
                   <div style={{ border: `2px dashed ${BORDER}`, borderRadius: 8, padding: 24, textAlign: "center" }}>
                     <div style={{ fontSize: 32, marginBottom: 8 }}>📄</div>
                     <div style={{ fontSize: 13, color: MUTED, marginBottom: 12 }}>Upload PDF or Word document</div>
-                    <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={e => setFile(e.target.files?.[0] || null)}
-                      style={{ display: "none" }} id="fileInput" />
-                    <label htmlFor="fileInput" style={{ ...S.btn, cursor: "pointer" }}>
-                      Choose File
-                    </label>
+                    <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={e => setFile(e.target.files?.[0] || null)} style={{ display: "none" }} id="fileInput" />
+                    <label htmlFor="fileInput" style={{ ...S.btn, cursor: "pointer" }}>Choose File</label>
                     {file && <div style={{ marginTop: 12, fontSize: 12, color: BRAND }}>✅ {file.name}</div>}
                   </div>
                 )}
               </>
             )}
-
-            <button type="button" onClick={run} disabled={loading} style={{ ...S.btn, marginTop: 12, opacity: loading ? 0.6 : 1 }}>
-              {loading ? "Analyzing..." : "⚡ Run AI Analysis"}
-            </button>
+            <button type="button" onClick={run} disabled={loading} style={{ ...S.btn, marginTop: 12, opacity: loading ? 0.6 : 1 }}>{loading ? "Analyzing..." : "⚡ Run AI Analysis"}</button>
           </div>
-
           <div style={{ ...S.card, padding: 18 }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: TEXT }}>Results</div>
-            {!res ? (
-              <div style={{ textAlign: "center", padding: "60px 20px", color: MUTED }}>
-                🤖<br />Run an analysis to see results
-              </div>
-            ) : (
+            {!res ? <div style={{ textAlign: "center", padding: "60px 20px", color: MUTED }}>🤖<br />Run an analysis to see results</div> : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 400, overflowY: "auto" }}>
                 {res?.data && Object.entries(res.data).map(([key, value]: any) => (
                   <div key={key} style={{ background: INPUT, border: `1px solid ${BORDER}`, borderRadius: 8, padding: "10px 14px" }}>
-                    <div style={{ fontSize: 10, fontWeight: 600, color: MUTED, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 4 }}>
-                      {key.replace(/([A-Z])/g, " $1").trim()}
-                    </div>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: MUTED, textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 4 }}>{key.replace(/([A-Z])/g, " $1").trim()}</div>
                     <div style={{ fontSize: 13, color: TEXT }}>
-                      {Array.isArray(value) ? (
-                        value.length > 0 ? (
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
-                            {value.map((v: string, i: number) => (
-                              <span key={i} style={{ background: BORDER, padding: "2px 8px", borderRadius: 10, fontSize: 11, color: TEXT }}>{v}</span>
-                            ))}
-                          </div>
-                        ) : <span style={{ color: MUTED }}>None</span>
-                      ) : typeof value === "number" ? (
-                        <span style={{ color: BRAND, fontWeight: 600, fontSize: 18 }}>{value}</span>
-                      ) : (
-                        String(value) || "—"
-                      )}
+                      {Array.isArray(value) ? (value.length > 0 ? <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>{value.map((v: string, i: number) => <span key={i} style={{ background: BORDER, padding: "2px 8px", borderRadius: 10, fontSize: 11, color: TEXT }}>{v}</span>)}</div> : <span style={{ color: MUTED }}>None</span>) : typeof value === "number" ? <span style={{ color: BRAND, fontWeight: 600, fontSize: 18 }}>{value}</span> : String(value) || "—"}
                     </div>
                   </div>
                 ))}
@@ -515,6 +495,7 @@ function AITools({ token, notify }: any) {
     </div>
   );
 }
+
 function CandidatesPage({ token, notify }: any) {
   const [list, setList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -526,10 +507,7 @@ function CandidatesPage({ token, notify }: any) {
 
   function load() {
     setLoading(true);
-    api("/api/candidates", "GET", null, token)
-      .then(d => setList(d.data || []))
-      .catch(e => notify(e.message, "error"))
-      .finally(() => setLoading(false));
+    api("/api/candidates", "GET", null, token).then(d => setList(d.data || [])).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
   }
   useEffect(() => { load(); }, [token]);
 
@@ -542,15 +520,12 @@ function CandidatesPage({ token, notify }: any) {
     const endpoint = editId ? `/api/candidates/${editId}` : "/api/candidates";
     api(endpoint, method, form, token)
       .then(() => { notify(editId ? "Candidate updated!" : "Candidate added!", "success"); setModal(false); setForm({}); setEditId(null); load(); })
-      .catch(e => notify(e.message, "error"))
-      .finally(() => setSaving(false));
+      .catch(e => notify(e.message, "error")).finally(() => setSaving(false));
   }
 
   function deleteCandidate(id: string, name: string) {
     if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
-    api(`/api/candidates/${id}`, "DELETE", null, token)
-      .then(() => { notify(`${name} deleted`, "success"); load(); })
-      .catch(e => notify(e.message, "error"));
+    api(`/api/candidates/${id}`, "DELETE", null, token).then(() => { notify(`${name} deleted`, "success"); load(); }).catch(e => notify(e.message, "error"));
   }
 
   return (
@@ -568,62 +543,39 @@ function CandidatesPage({ token, notify }: any) {
           {loading ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>Loading...</div> :
             filtered.length === 0 ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>No candidates found</div> : (
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={S.th}>Name</th>
-                    <th style={S.th}>Email</th>
-                    <th style={S.th}>Location</th>
-                    <th style={S.th}>Visa</th>
-                    <th style={S.th}>Rate</th>
-                    <th style={S.th}>Availability</th>
-                    <th style={S.th}>Status</th>
-                    <th style={S.th}>Actions</th>
+                <thead><tr>
+                  <th style={S.th}>CAN ID</th><th style={S.th}>Name</th><th style={S.th}>Email</th>
+                  <th style={S.th}>Location</th><th style={S.th}>Visa</th><th style={S.th}>Rate</th>
+                  <th style={S.th}>Status</th><th style={S.th}>Actions</th>
+                </tr></thead>
+                <tbody>{filtered.map((x: any, i: number) => (
+                  <tr key={i}>
+                    <td style={S.td}>
+                      <span title="Click to copy" onClick={() => { navigator.clipboard.writeText(x.id); notify("ID copied!", "success"); }}
+                        style={{ fontFamily: "monospace", fontSize: 11, background: INPUT, padding: "2px 7px", borderRadius: 5, color: BRAND, cursor: "pointer", border: `1px solid ${BORDER}` }}>
+                        {x.candidateId || x.id?.slice(0, 8)}
+                      </span>
+                    </td>
+                    <td style={S.tdn}>{x.name}</td>
+                    <td style={S.td}>{x.email || "—"}</td>
+                    <td style={S.td}>{x.location || "—"}</td>
+                    <td style={S.td}>{x.visaStatus || "—"}</td>
+                    <td style={S.td}>{x.rateExpectation || "—"}</td>
+                    <td style={S.td}><Badge status={x.status}>{x.status || "sourcing"}</Badge></td>
+                    <td style={S.td}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button type="button" onClick={() => { setForm({ name: x.name, email: x.email || "", phone: x.phone || "", location: x.location || "", visaStatus: x.visaStatus || "", rateExpectation: x.rateExpectation || "", availability: x.availability || "", employmentType: x.employmentType || "CONTRACT", status: x.status || "sourcing" }); setEditId(x.id); setModal(true); }}
+                          style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>✏️ Edit</button>
+                        <button type="button" onClick={() => deleteCandidate(x.id, x.name)}
+                          style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid #EF444430", background: "transparent", color: "#EF4444", cursor: "pointer", fontFamily: FONT }}>🗑</button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((x: any, i: number) => (
-                    <tr key={i}>
-                      <td style={S.tdn}>{x.name}</td>
-                      <td style={S.td}>{x.email || "—"}</td>
-                      <td style={S.td}>{x.location || "—"}</td>
-                      <td style={S.td}>{x.visaStatus || "—"}</td>
-                      <td style={S.td}>{x.rateExpectation || "—"}</td>
-                      <td style={S.td}>{x.availability || "—"}</td>
-                      <td style={S.td}><Badge status={x.status}>{x.status || "sourcing"}</Badge></td>
-                      <td style={S.td}>
-                        <div style={{ display: "flex", gap: 6 }}>
-                          <button type="button" onClick={() => { 
-  setForm({ 
-    name: x.name,
-    email: x.email || "",
-    phone: x.phone || "",
-    location: x.location || "",
-    visaStatus: x.visaStatus || "",
-    rateExpectation: x.rateExpectation || "",
-    availability: x.availability || "",
-    employmentType: x.employmentType || "CONTRACT",
-    status: x.status || "sourcing",
-  }); 
-  setEditId(x.id); 
-  setModal(true); 
-}}
-                            style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>
-                            ✏️ Edit
-                          </button>
-                          <button type="button" onClick={() => deleteCandidate(x.id, x.name)}
-                            style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid #EF444430", background: "transparent", color: "#EF4444", cursor: "pointer", fontFamily: FONT }}>
-                            🗑 Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                ))}</tbody>
               </table>
             )}
         </div>
       </div>
-
       {modal && (
         <Modal title={editId ? "Edit Candidate" : "Add Candidate"} onClose={() => { setModal(false); setForm({}); setEditId(null); }} onSave={save} saving={saving}>
           <Field label="Full Name *"><input style={S.inp} value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. John Smith" /></Field>
@@ -635,20 +587,13 @@ function CandidatesPage({ token, notify }: any) {
           <Field label="Availability"><input style={S.inp} value={form.availability || ""} onChange={e => setForm({ ...form, availability: e.target.value })} placeholder="e.g. Immediate" /></Field>
           <Field label="Employment Type">
             <select style={S.inp} value={form.employmentType || "CONTRACT"} onChange={e => setForm({ ...form, employmentType: e.target.value })}>
-              <option value="CONTRACT">Contract</option>
-              <option value="FULL_TIME">Full Time</option>
-              <option value="CONTRACT_TO_HIRE">Contract to Hire</option>
+              <option value="CONTRACT">Contract</option><option value="FULL_TIME">Full Time</option><option value="CONTRACT_TO_HIRE">Contract to Hire</option>
             </select>
           </Field>
           <Field label="Status">
             <select style={S.inp} value={form.status || "sourcing"} onChange={e => setForm({ ...form, status: e.target.value })}>
-              <option value="sourcing">Sourcing</option>
-              <option value="screening">Screening</option>
-              <option value="submitted">Submitted</option>
-              <option value="interviewing">Interviewing</option>
-              <option value="offered">Offered</option>
-              <option value="placed">Placed</option>
-              <option value="rejected">Rejected</option>
+              <option value="sourcing">Sourcing</option><option value="screening">Screening</option><option value="submitted">Submitted</option>
+              <option value="interviewing">Interviewing</option><option value="offered">Offered</option><option value="placed">Placed</option><option value="rejected">Rejected</option>
             </select>
           </Field>
         </Modal>
@@ -656,6 +601,7 @@ function CandidatesPage({ token, notify }: any) {
     </div>
   );
 }
+
 function JobsPage({ token, notify }: any) {
   const [list, setList] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
@@ -668,13 +614,9 @@ function JobsPage({ token, notify }: any) {
 
   function load() {
     setLoading(true);
-    Promise.all([
-      api("/api/jobs", "GET", null, token),
-      api("/api/clients", "GET", null, token),
-    ]).then(([j, c]) => {
-      setList(j.data || []);
-      setClients(c.data || []);
-    }).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
+    Promise.all([api("/api/jobs", "GET", null, token), api("/api/clients", "GET", null, token)])
+      .then(([j, c]) => { setList(j.data || []); setClients(c.data || []); })
+      .catch(e => notify(e.message, "error")).finally(() => setLoading(false));
   }
   useEffect(() => { load(); }, [token]);
 
@@ -684,32 +626,19 @@ function JobsPage({ token, notify }: any) {
     if (!form.clientId) { notify("Please select a client", "error"); return; }
     if (!form.title) { notify("Job title is required", "error"); return; }
     setSaving(true);
-    const body = {
-      clientId: form.clientId,
-      title: form.title,
-      description: form.description || "",
-      location: form.location || "",
-      type: form.type || "Contract",
-      rate: form.rate || "",
-      rateNumeric: form.rateNumeric ? Number(form.rateNumeric) : undefined,
-      currency: form.currency || "USD",
-      paymentType: form.paymentType || "Hourly",
-      remote: form.remote || "",
-      duration: form.duration || "",
-    };
+    const body = { clientId: form.clientId, title: form.title, description: form.description || "", location: form.location || "", type: form.type || "Contract", rate: form.rate || "", rateNumeric: form.rateNumeric ? Number(form.rateNumeric) : undefined, currency: form.currency || "USD", paymentType: form.paymentType || "Hourly", remote: form.remote || "", duration: form.duration || "", isHot: form.isHot || false };
     const method = editId ? "PATCH" : "POST";
     const endpoint = editId ? `/api/jobs/${editId}` : "/api/jobs";
     api(endpoint, method, body, token)
       .then(() => { notify(editId ? "Job updated!" : "Job added!", "success"); setModal(false); setForm({ type: "Contract" }); setEditId(null); load(); })
-      .catch(e => notify(e.message, "error"))
-      .finally(() => setSaving(false));
+      .catch(e => notify(e.message, "error")).finally(() => setSaving(false));
   }
 
   return (
     <div>
       <div style={S.bar}>
         <div style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>Jobs</div>
-        <button type="button" onClick={() => setModal(true)} style={S.btn}>+ Add Job</button>
+        <button type="button" onClick={() => { setForm({ type: "Contract" }); setEditId(null); setModal(true); }} style={S.btn}>+ Add Job</button>
       </div>
       <div style={S.page}>
         <div style={S.card}>
@@ -720,59 +649,35 @@ function JobsPage({ token, notify }: any) {
           {loading ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>Loading...</div> :
             filtered.length === 0 ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>No jobs found</div> : (
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={S.th}>Title</th>
-                    <th style={S.th}>Client</th>
-                    <th style={S.th}>Location</th>
-                    <th style={S.th}>Type</th>
-                    <th style={S.th}>Rate</th>
-                    <th style={S.th}>Currency</th>
-                    <th style={S.th}>Payment</th>
-                    <th style={S.th}>Status</th>
+                <thead><tr>
+                  <th style={S.th}>JOB ID</th><th style={S.th}>Title</th><th style={S.th}>Client</th>
+                  <th style={S.th}>Location</th><th style={S.th}>Type</th><th style={S.th}>Rate</th>
+                  <th style={S.th}>Status</th><th style={S.th}>Actions</th>
+                </tr></thead>
+                <tbody>{filtered.map((x: any, i: number) => (
+                  <tr key={i}>
+                    <td style={S.td}>
+                      <span title="Click to copy" onClick={() => { navigator.clipboard.writeText(x.id); notify("Job ID copied!", "success"); }}
+                        style={{ fontFamily: "monospace", fontSize: 11, background: INPUT, padding: "2px 7px", borderRadius: 5, color: BRAND, cursor: "pointer", border: `1px solid ${BORDER}` }}>
+                        {x.jobId || x.id?.slice(0, 8)}
+                      </span>
+                    </td>
+                    <td style={S.tdn}>{x.isHot ? "🔥 " : ""}{x.title}</td>
+                    <td style={S.td}>{x.client?.name || "—"}</td>
+                    <td style={S.td}>{x.location || "—"}</td>
+                    <td style={S.td}><Badge>{x.type || "Contract"}</Badge></td>
+                    <td style={S.td}>{x.rateNumeric ? `${x.currency || "USD"} ${x.rateNumeric}/${x.paymentType || "hr"}` : x.rate || "—"}</td>
+                    <td style={S.td}><Badge status={x.status}>{x.status || "Open"}</Badge></td>
+                    <td style={S.td}>
+                      <button type="button" onClick={() => { setForm({ clientId: x.client?.id || x.clientId, title: x.title, description: x.description || "", location: x.location || "", type: x.type || "Contract", rateNumeric: x.rateNumeric || "", currency: x.currency || "USD", paymentType: x.paymentType || "Hourly", duration: x.duration || "", remote: x.remote || "", isHot: x.isHot || false }); setEditId(x.id); setModal(true); }}
+                        style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>✏️ Edit</button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((x: any, i: number) => (
-  <tr key={i}>
-    <td style={S.tdn}>{x.title}</td>
-    <td style={S.td}>{x.client?.name || "—"}</td>
-    <td style={S.td}>{x.location || "—"}</td>
-    <td style={S.td}><Badge>{x.type || "Contract"}</Badge></td>
-    <td style={S.td}>{x.rate || (x.rateNumeric ? `${x.rateNumeric}` : "—")}</td>
-    <td style={S.td}>{x.currency || "USD"}</td>
-    <td style={S.td}>{x.paymentType || "Hourly"}</td>
-    <td style={S.td}><Badge status={x.status}>{x.status || "Open"}</Badge></td>
-    <td style={S.td}>
-      <button type="button" onClick={() => {
-  setForm({
-    clientId: x.client?.id || x.clientId,
-    title: x.title,
-    description: x.description || "",
-    location: x.location || "",
-    type: x.type || "Contract",
-    rateNumeric: x.rateNumeric || "",
-    currency: x.currency || "USD",
-    paymentType: x.paymentType || "Hourly",
-    duration: x.duration || "",
-    remote: x.remote || "",
-    status: x.status || "Open",
-  });
-  setEditId(x.id);
-  setModal(true);
-}}
-        style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>
-        ✏️ Edit
-      </button>
-    </td>
-  </tr>
-))}
-                </tbody>
+                ))}</tbody>
               </table>
             )}
         </div>
       </div>
-
       {modal && (
         <Modal title={editId ? "Edit Job" : "Add New Job"} onClose={() => { setModal(false); setEditId(null); setForm({ type: "Contract" }); }} onSave={save} saving={saving}>
           <Field label="Client *">
@@ -781,56 +686,38 @@ function JobsPage({ token, notify }: any) {
               {clients.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </Field>
-          <Field label="Job Title *">
-            <input style={S.inp} value={form.title || ""} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. SAP FICO Consultant" />
-          </Field>
-          <Field label="Description">
-            <textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} />
-          </Field>
-          <Field label="Location">
-            <input style={S.inp} value={form.location || ""} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Dallas, TX (Remote)" />
-          </Field>
+          <Field label="Job Title *"><input style={S.inp} value={form.title || ""} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="e.g. SAP FICO Consultant" /></Field>
+          <Field label="Description"><textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} /></Field>
+          <Field label="Location"><input style={S.inp} value={form.location || ""} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Dallas, TX" /></Field>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <Field label="Type">
               <select style={S.inp} value={form.type || "Contract"} onChange={e => setForm({ ...form, type: e.target.value })}>
-                <option value="Contract">Contract</option>
-                <option value="Permanent">Permanent</option>
-                <option value="ContractToHire">Contract to Hire</option>
+                <option value="Contract">Contract</option><option value="Permanent">Permanent</option><option value="ContractToHire">Contract to Hire</option>
               </select>
             </Field>
-            <Field label="Duration">
-              <input style={S.inp} value={form.duration || ""} onChange={e => setForm({ ...form, duration: e.target.value })} placeholder="e.g. 6 months" />
-            </Field>
+            <Field label="Duration"><input style={S.inp} value={form.duration || ""} onChange={e => setForm({ ...form, duration: e.target.value })} placeholder="e.g. 6 months" /></Field>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <Field label="Rate">
-              <input style={S.inp} type="number" value={form.rateNumeric || ""} onChange={e => setForm({ ...form, rateNumeric: e.target.value })} placeholder="85" />
-            </Field>
+            <Field label="Rate"><input style={S.inp} type="number" value={form.rateNumeric || ""} onChange={e => setForm({ ...form, rateNumeric: e.target.value })} placeholder="85" /></Field>
             <Field label="Currency">
               <select style={S.inp} value={form.currency || "USD"} onChange={e => setForm({ ...form, currency: e.target.value })}>
-                <option value="USD">USD</option>
-                <option value="GBP">GBP</option>
-                <option value="EUR">EUR</option>
-                <option value="INR">INR</option>
-                <option value="CAD">CAD</option>
-                <option value="AUD">AUD</option>
+                <option value="USD">USD</option><option value="GBP">GBP</option><option value="EUR">EUR</option><option value="INR">INR</option><option value="CAD">CAD</option><option value="AUD">AUD</option>
               </select>
             </Field>
-            <Field label="Payment Type">
+            <Field label="Payment">
               <select style={S.inp} value={form.paymentType || "Hourly"} onChange={e => setForm({ ...form, paymentType: e.target.value })}>
-                <option value="Hourly">Hourly</option>
-                <option value="Daily">Daily</option>
-                <option value="Monthly">Monthly</option>
-                <option value="Yearly">Yearly</option>
+                <option value="Hourly">Hourly</option><option value="Daily">Daily</option><option value="Monthly">Monthly</option><option value="Yearly">Yearly</option>
               </select>
             </Field>
           </div>
           <Field label="Remote">
             <select style={S.inp} value={form.remote || ""} onChange={e => setForm({ ...form, remote: e.target.value })}>
-              <option value="">— Select —</option>
-              <option value="Remote">Remote</option>
-              <option value="Hybrid">Hybrid</option>
-              <option value="Onsite">Onsite</option>
+              <option value="">— Select —</option><option value="Remote">Remote</option><option value="Hybrid">Hybrid</option><option value="Onsite">Onsite</option>
+            </select>
+          </Field>
+          <Field label="🔥 Hot Job">
+            <select style={S.inp} value={form.isHot ? "true" : "false"} onChange={e => setForm({ ...form, isHot: e.target.value === "true" })}>
+              <option value="false">No</option><option value="true">Yes — Flag as Hot Job</option>
             </select>
           </Field>
         </Modal>
@@ -838,27 +725,28 @@ function JobsPage({ token, notify }: any) {
     </div>
   );
 }
-function SubmissionsPage({ token, notify }: any) {
+
+function SubmissionsPage({ token, notify, userRole }: any) {
   const [list, setList] = useState<any[]>([]);
   const [candidates, setCandidates] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
+  const [statusModal, setStatusModal] = useState<any>(null);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [form, setForm] = useState<any>({});
+  const [statusForm, setStatusForm] = useState<any>({});
+
+  const canChangeStatus = ["ADMIN", "RECRUITING_MANAGER", "SALES_MANAGER", "SALES"].includes(userRole);
+  const canApprove = ["ADMIN", "RECRUITING_MANAGER"].includes(userRole);
+  const canSubmitToClient = ["ADMIN", "SALES_MANAGER", "SALES"].includes(userRole);
 
   function load() {
     setLoading(true);
-    Promise.all([
-      api("/api/submissions", "GET", null, token),
-      api("/api/candidates", "GET", null, token),
-      api("/api/jobs", "GET", null, token),
-    ]).then(([s, c, j]) => {
-      setList(s.data || []);
-      setCandidates(c.data || []);
-      setJobs(j.data || []);
-    }).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
+    Promise.all([api("/api/submissions", "GET", null, token), api("/api/candidates", "GET", null, token), api("/api/jobs", "GET", null, token)])
+      .then(([s, c, j]) => { setList(s.data || []); setCandidates(c.data || []); setJobs(j.data || []); })
+      .catch(e => notify(e.message, "error")).finally(() => setLoading(false));
   }
   useEffect(() => { load(); }, [token]);
 
@@ -868,11 +756,25 @@ function SubmissionsPage({ token, notify }: any) {
     if (!form.candidateId) { notify("Please select a candidate", "error"); return; }
     if (!form.jobId) { notify("Please select a job", "error"); return; }
     setSaving(true);
-    api("/api/submissions", "POST", form, token)
-      .then(() => { notify("Submission added!", "success"); setModal(false); setForm({}); load(); })
-      .catch(e => notify(e.message, "error"))
-      .finally(() => setSaving(false));
+    api("/api/submissions", "POST", { candidateId: form.candidateId, jobId: form.jobId, notes: form.notes, interviewDate: form.interviewDate }, token)
+      .then(() => { notify("Submission added! Pending manager review.", "success"); setModal(false); setForm({}); load(); })
+      .catch(e => notify(e.message, "error")).finally(() => setSaving(false));
   }
+
+  function updateStatus() {
+    if (!statusForm.status) { notify("Please select a status", "error"); return; }
+    setSaving(true);
+    api(`/api/submissions/${statusModal.id}`, "PATCH", statusForm, token)
+      .then(() => { notify("Status updated!", "success"); setStatusModal(null); setStatusForm({}); load(); })
+      .catch(e => notify(e.message, "error")).finally(() => setSaving(false));
+  }
+
+  const availableStatuses = SUBMISSION_STATUSES.filter(s => {
+    if (userRole === "ADMIN") return true;
+    if (userRole === "RECRUITING_MANAGER") return ["pending_review", "approved_internally", "rejected_internally"].includes(s.value);
+    if (userRole === "SALES" || userRole === "SALES_MANAGER") return ["submitted_to_vendor", "submitted_to_client", "rejected_by_client", "placed", "withdrawn"].includes(s.value);
+    return false;
+  });
 
   return (
     <div>
@@ -889,28 +791,32 @@ function SubmissionsPage({ token, notify }: any) {
           {loading ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>Loading...</div> :
             filtered.length === 0 ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>No submissions yet</div> : (
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={S.th}>Candidate</th>
-                    <th style={S.th}>Job</th>
-                    <th style={S.th}>Client</th>
-                    <th style={S.th}>Status</th>
-                    <th style={S.th}>Submitted</th>
-                    <th style={S.th}>Notes</th>
+                <thead><tr>
+                  <th style={S.th}>SUB ID</th><th style={S.th}>Candidate</th><th style={S.th}>Job</th>
+                  <th style={S.th}>Client</th><th style={S.th}>Status</th><th style={S.th}>Submitted</th>
+                  <th style={S.th}>Notes</th>{canChangeStatus && <th style={S.th}>Actions</th>}
+                </tr></thead>
+                <tbody>{filtered.map((x: any, i: number) => (
+                  <tr key={i}>
+                    <td style={S.td}>
+                      <span style={{ fontFamily: "monospace", fontSize: 11, background: INPUT, padding: "2px 7px", borderRadius: 5, color: BRAND, border: `1px solid ${BORDER}` }}>
+                        {x.submissionId || x.id?.slice(0, 8)}
+                      </span>
+                    </td>
+                    <td style={S.tdn}>{x.candidate?.name || "—"}</td>
+                    <td style={S.td}>{x.job?.title || "—"}</td>
+                    <td style={S.td}>{x.job?.client?.name || "—"}</td>
+                    <td style={S.td}><Badge status={x.status}>{x.status || "pending_review"}</Badge></td>
+                    <td style={S.td}>{fmt(x.submissionDate || x.createdAt)}</td>
+                    <td style={S.td}>{x.notes || "—"}</td>
+                    {canChangeStatus && (
+                      <td style={S.td}>
+                        <button type="button" onClick={() => { setStatusModal(x); setStatusForm({ status: x.status, notes: x.notes || "", internalNotes: x.internalNotes || "" }); }}
+                          style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>✏️ Update</button>
+                      </td>
+                    )}
                   </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((x: any, i: number) => (
-                    <tr key={i}>
-                      <td style={S.tdn}>{x.candidate?.name || "—"}</td>
-                      <td style={S.td}>{x.job?.title || "—"}</td>
-                      <td style={S.td}>{x.job?.client?.name || "—"}</td>
-                      <td style={S.td}><Badge status={x.status}>{x.status || "Submitted"}</Badge></td>
-                      <td style={S.td}>{fmt(x.submissionDate || x.createdAt)}</td>
-                      <td style={S.td}>{x.notes || "—"}</td>
-                    </tr>
-                  ))}
-                </tbody>
+                ))}</tbody>
               </table>
             )}
         </div>
@@ -918,40 +824,44 @@ function SubmissionsPage({ token, notify }: any) {
 
       {modal && (
         <Modal title="Add Submission" onClose={() => setModal(false)} onSave={save} saving={saving}>
+          <div style={{ fontSize: 12, color: MUTED, marginBottom: 16, padding: "8px 12px", background: "rgba(0,212,255,0.05)", borderRadius: 8, border: `1px solid ${BRAND}30` }}>
+            ℹ️ Submission will be sent for manager review automatically.
+          </div>
           <Field label="Candidate *">
             <select style={S.inp} value={form.candidateId || ""} onChange={e => setForm({ ...form, candidateId: e.target.value })}>
               <option value="">— Select Candidate —</option>
-              {candidates.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {candidates.map((c: any) => <option key={c.id} value={c.id}>{c.name}{c.candidateId ? ` (${c.candidateId})` : ""}</option>)}
             </select>
           </Field>
           <Field label="Job *">
             <select style={S.inp} value={form.jobId || ""} onChange={e => setForm({ ...form, jobId: e.target.value })}>
               <option value="">— Select Job —</option>
-              {jobs.map((j: any) => <option key={j.id} value={j.id}>{j.title} — {j.client?.name || "No client"}</option>)}
+              {jobs.map((j: any) => <option key={j.id} value={j.id}>{j.title}{j.jobId ? ` (${j.jobId})` : ""} — {j.client?.name || "No client"}</option>)}
             </select>
           </Field>
-          <Field label="Notes">
-            <textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form.notes || ""} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any notes about this submission..." />
+          <Field label="Notes"><textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form.notes || ""} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any notes..." /></Field>
+          <Field label="Interview Date"><input style={S.inp} type="date" value={form.interviewDate || ""} onChange={e => setForm({ ...form, interviewDate: e.target.value })} /></Field>
+        </Modal>
+      )}
+
+      {statusModal && (
+        <Modal title={`Update — ${statusModal.candidate?.name}`} onClose={() => { setStatusModal(null); setStatusForm({}); }} onSave={updateStatus} saving={saving}>
+          <div style={{ fontSize: 12, color: MUTED, marginBottom: 16 }}>Current: <Badge status={statusModal.status}>{statusModal.status}</Badge></div>
+          <Field label="New Status">
+            <select style={S.inp} value={statusForm.status || ""} onChange={e => setStatusForm({ ...statusForm, status: e.target.value })}>
+              <option value="">— Select Status —</option>
+              {availableStatuses.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </select>
           </Field>
-          <Field label="Status">
-  <select style={S.inp} value={form.status || "submitted"} onChange={e => setForm({ ...form, status: e.target.value })}>
-    <option value="submitted">Submitted</option>
-    <option value="reviewing">Reviewing</option>
-    <option value="interviewing">Interviewing</option>
-    <option value="offered">Offered</option>
-    <option value="placed">Placed</option>
-    <option value="rejected">Rejected</option>
-    <option value="withdrawn">Withdrawn</option>
-  </select>
-</Field>
-          <Field label="Interview Date">
-            <input style={S.inp} type="date" value={form.interviewDate || ""} onChange={e => setForm({ ...form, interviewDate: e.target.value })} />
-          </Field>
+          {canApprove && <Field label="Internal Notes"><textarea style={{ ...S.inp, minHeight: 60, resize: "vertical" }} value={statusForm.internalNotes || ""} onChange={e => setStatusForm({ ...statusForm, internalNotes: e.target.value })} placeholder="Internal notes..." /></Field>}
+          {canSubmitToClient && <Field label="Client Feedback"><textarea style={{ ...S.inp, minHeight: 60, resize: "vertical" }} value={statusForm.clientFeedback || ""} onChange={e => setStatusForm({ ...statusForm, clientFeedback: e.target.value })} placeholder="Client feedback..." /></Field>}
+          <Field label="Interview Date"><input style={S.inp} type="date" value={statusForm.interviewDate || ""} onChange={e => setStatusForm({ ...statusForm, interviewDate: e.target.value })} /></Field>
         </Modal>
       )}
     </div>
   );
 }
+
 function UsersPage({ token, notify }: any) {
   const [list, setList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -964,10 +874,7 @@ function UsersPage({ token, notify }: any) {
 
   function load() {
     setLoading(true);
-    api("/api/users", "GET", null, token)
-      .then(d => setList(d.data || []))
-      .catch(e => notify(e.message, "error"))
-      .finally(() => setLoading(false));
+    api("/api/users", "GET", null, token).then(d => setList(d.data || [])).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
   }
   useEffect(() => { load(); }, [token]);
 
@@ -975,26 +882,18 @@ function UsersPage({ token, notify }: any) {
 
   function addUser() {
     setSaving(true);
-    api("/api/users", "POST", form, token)
-      .then(() => { notify("User added!", "success"); setAddModal(false); setForm({}); load(); })
-      .catch(e => notify(e.message, "error"))
-      .finally(() => setSaving(false));
+    api("/api/users", "POST", form, token).then(() => { notify("User added!", "success"); setAddModal(false); setForm({}); load(); }).catch(e => notify(e.message, "error")).finally(() => setSaving(false));
   }
 
   function deleteUser(id: string, name: string) {
-    if (!confirm(`Deactivate ${name}? Their data will be kept.`)) return;
-    api(`/api/users/${id}`, "DELETE", null, token)
-      .then(() => { notify(`${name} deactivated`, "success"); load(); })
-      .catch(e => notify(e.message, "error"));
+    if (!confirm(`Deactivate ${name}?`)) return;
+    api(`/api/users/${id}`, "DELETE", null, token).then(() => { notify(`${name} deactivated`, "success"); load(); }).catch(e => notify(e.message, "error"));
   }
 
   function resetPassword() {
-    if (!newPw || newPw.length < 8) { notify("Password must be at least 8 characters", "error"); return; }
+    if (!newPw || newPw.length < 8) { notify("Min 8 characters", "error"); return; }
     setSaving(true);
-    api(`/api/users/${resetModal.id}`, "PATCH", { password: newPw }, token)
-      .then(() => { notify(`Password reset for ${resetModal.name}`, "success"); setResetModal(null); setNewPw(""); })
-      .catch(e => notify(e.message, "error"))
-      .finally(() => setSaving(false));
+    api(`/api/users/${resetModal.id}`, "PATCH", { password: newPw }, token).then(() => { notify(`Password reset for ${resetModal.name}`, "success"); setResetModal(null); setNewPw(""); }).catch(e => notify(e.message, "error")).finally(() => setSaving(false));
   }
 
   return (
@@ -1011,74 +910,51 @@ function UsersPage({ token, notify }: any) {
           </div>
           {loading ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>Loading...</div> : (
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
-              <thead>
-                <tr>
-                  <th style={S.th}>Name</th>
-                  <th style={S.th}>Email</th>
-                  <th style={S.th}>Role</th>
-                  <th style={S.th}>Status</th>
-                  <th style={S.th}>Added</th>
-                  <th style={S.th}>Actions</th>
+              <thead><tr><th style={S.th}>Name</th><th style={S.th}>Email</th><th style={S.th}>Role</th><th style={S.th}>Status</th><th style={S.th}>Added</th><th style={S.th}>Actions</th></tr></thead>
+              <tbody>{filtered.map((x: any, i: number) => (
+                <tr key={i}>
+                  <td style={S.tdn}>{x.name}</td>
+                  <td style={S.td}>{x.email}</td>
+                  <td style={S.td}><Badge>{ROLES.find(r => r.value === x.role)?.label || x.role}</Badge></td>
+                  <td style={S.td}><Badge status={x.isActive ? "active" : "rejected"}>{x.isActive ? "Active" : "Inactive"}</Badge></td>
+                  <td style={S.td}>{fmt(x.createdAt)}</td>
+                  <td style={S.td}>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <button type="button" onClick={() => { setResetModal(x); setNewPw(""); }} style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>🔑 Reset PW</button>
+                      {x.isActive && <button type="button" onClick={() => deleteUser(x.id, x.name)} style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid #EF444430", background: "transparent", color: "#EF4444", cursor: "pointer", fontFamily: FONT }}>🗑 Deactivate</button>}
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filtered.map((x: any, i: number) => (
-                  <tr key={i}>
-                    <td style={S.tdn}>{x.name}</td>
-                    <td style={S.td}>{x.email}</td>
-                    <td style={S.td}><Badge>{x.role}</Badge></td>
-                    <td style={S.td}><Badge status={x.isActive ? "active" : "rejected"}>{x.isActive ? "Active" : "Inactive"}</Badge></td>
-                    <td style={S.td}>{fmt(x.createdAt)}</td>
-                    <td style={S.td}>
-                      <div style={{ display: "flex", gap: 6 }}>
-                        <button type="button" onClick={() => { setResetModal(x); setNewPw(""); }}
-                          style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>
-                          🔑 Reset PW
-                        </button>
-                        {x.isActive && (
-                          <button type="button" onClick={() => deleteUser(x.id, x.name)}
-                            style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid #EF444430", background: "transparent", color: "#EF4444", cursor: "pointer", fontFamily: FONT }}>
-                            🗑 Deactivate
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
+              ))}</tbody>
             </table>
           )}
         </div>
       </div>
-
       {addModal && (
         <Modal title="Add New User" onClose={() => setAddModal(false)} onSave={addUser} saving={saving}>
           <Field label="Full Name"><input style={S.inp} value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. John Smith" /></Field>
           <Field label="Email"><input style={S.inp} type="email" value={form.email || ""} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="john@urbench.com" /></Field>
-          <Field label="Password"><input style={S.inp} value={form.password || ""} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Min 8 characters" /></Field>
+          <Field label="Password"><input style={S.inp} type="password" value={form.password || ""} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Min 8 characters" /></Field>
           <Field label="Role">
             <select style={S.inp} value={form.role || "RECRUITER"} onChange={e => setForm({ ...form, role: e.target.value })}>
-              <option value="RECRUITER">Recruiter</option>
-              <option value="SALES">Sales</option>
-              <option value="ADMIN">Admin</option>
+              {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
           </Field>
         </Modal>
       )}
-
       {resetModal && (
         <Modal title={`Reset Password — ${resetModal.name}`} onClose={() => setResetModal(null)} onSave={resetPassword} saving={saving}>
-          <div style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>Enter a new password for <strong style={{ color: TEXT }}>{resetModal.name}</strong> ({resetModal.email})</div>
-          <Field label="New Password">
-            <input style={S.inp} type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="Min 8 characters" />
-          </Field>
+          <div style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>New password for <strong style={{ color: TEXT }}>{resetModal.name}</strong></div>
+          <Field label="New Password"><input style={S.inp} type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="Min 8 characters" /></Field>
         </Modal>
       )}
     </div>
   );
 }
+
 export default function Page() {
   const [token, setToken] = useState("");
+  const [userRole, setUserRole] = useState("");
   const [page, setPage] = useState("dashboard");
   const [toast, setToast] = useState({ msg: "", type: "info", show: false });
 
@@ -1087,7 +963,13 @@ export default function Page() {
     setTimeout(() => setToast(t => ({ ...t, show: false })), 3000);
   }
 
-  if (!token) return <LoginPage onLogin={t => { setToken(t); notify("Logged in!", "success"); }} />;
+  function handleLogin(t: string) {
+    setToken(t);
+    try { const p = JSON.parse(atob(t.split(".")[1])); setUserRole(p.role || ""); } catch {}
+    notify("Logged in!", "success");
+  }
+
+  if (!token) return <LoginPage onLogin={handleLogin} />;
 
   const navItems = [
     { id: "dashboard", label: "📊 Dashboard" },
@@ -1121,19 +1003,36 @@ export default function Page() {
           ))}
         </div>
         <div style={{ padding: "12px 10px", borderTop: `1px solid ${BORDER}` }}>
-          <button type="button" onClick={() => setToken("")} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 8, color: MUTED, fontSize: 13, cursor: "pointer", border: "none", background: "transparent", width: "100%", textAlign: "left", fontFamily: FONT }}>↩ Sign Out</button>
-          <div style={{ padding: "8px 10px 4px", fontSize: 10, color: MUTED }}>Developed by {COMPANY} LLC</div>
+          <button type="button" onClick={() => { setToken(""); setUserRole(""); }} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 8, color: MUTED, fontSize: 13, cursor: "pointer", border: "none", background: "transparent", width: "100%", textAlign: "left", fontFamily: FONT }}>↩ Sign Out</button>
+          <div style={{ padding: "8px 10px 4px", fontSize: 10, color: MUTED }}>Developed with ❤️ in India by <span style={{ color: BRAND }}>Owais</span></div>
         </div>
       </div>
 
       <div style={{ marginLeft: 230, flex: 1, minHeight: "100vh" }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 40, background: HEADER_BG, borderBottom: `1px solid ${BORDER}`, padding: "10px 28px", display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 12 }}>
+          {userRole && <span style={{ fontSize: 11, color: MUTED, background: INPUT, padding: "3px 10px", borderRadius: 10, border: `1px solid ${BORDER}` }}>{ROLES.find(r => r.value === userRole)?.label || userRole}</span>}
+          <NotificationBell token={token} notify={notify} />
+        </div>
         {page === "dashboard" && <Dashboard token={token} goTo={setPage} notify={notify} />}
         {page === "candidates" && <CandidatesPage token={token} notify={notify} />}
         {page === "jobs" && <JobsPage token={token} notify={notify} />}
         {page === "clients" && <DataPage title="Clients" token={token} notify={notify} endpoint="/api/clients" addTitle="Client"
-          columns={[{ key: "name", label: "Company", isName: true }, { key: "industry", label: "Industry" }, { key: "contactName", label: "Contact" }, { key: "contactEmail", label: "Email" }, { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) }]}
-          addFields={[{ key: "name", label: "Company Name" }, { key: "industry", label: "Industry", placeholder: "e.g. Manufacturing, Finance" }, { key: "contactName", label: "Contact Name" }, { key: "contactEmail", label: "Contact Email", type: "email" }]} />}
-        {page === "submissions" && <SubmissionsPage token={token} notify={notify} />}
+          columns={[
+            { key: "clientId", label: "CLT ID", render: (x: any) => <span style={{ fontFamily: "monospace", fontSize: 11, background: INPUT, padding: "2px 7px", borderRadius: 5, color: BRAND, border: `1px solid ${BORDER}` }}>{x.clientId || "—"}</span> },
+            { key: "name", label: "Company", isName: true },
+            { key: "industry", label: "Industry" },
+            { key: "contactName", label: "Contact" },
+            { key: "contactEmail", label: "Email" },
+            { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) },
+          ]}
+          addFields={[
+            { key: "name", label: "Company Name" },
+            { key: "industry", label: "Industry", placeholder: "e.g. Manufacturing, Finance" },
+            { key: "contactName", label: "Contact Name" },
+            { key: "contactEmail", label: "Contact Email", type: "email" },
+            { key: "website", label: "Website", placeholder: "https://..." },
+          ]} />}
+        {page === "submissions" && <SubmissionsPage token={token} notify={notify} userRole={userRole} />}
         {page === "analytics" && <Analytics token={token} />}
         {page === "ai" && <AITools token={token} notify={notify} />}
         {page === "users" && <UsersPage token={token} notify={notify} />}

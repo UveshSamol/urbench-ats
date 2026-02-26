@@ -585,7 +585,21 @@ function CandidatesPage({ token, notify }: any) {
                       <td style={S.td}><Badge status={x.status}>{x.status || "sourcing"}</Badge></td>
                       <td style={S.td}>
                         <div style={{ display: "flex", gap: 6 }}>
-                          <button type="button" onClick={() => { setForm({ ...x }); setEditId(x.id); setModal(true); }}
+                          <button type="button" onClick={() => { 
+  setForm({ 
+    name: x.name,
+    email: x.email || "",
+    phone: x.phone || "",
+    location: x.location || "",
+    visaStatus: x.visaStatus || "",
+    rateExpectation: x.rateExpectation || "",
+    availability: x.availability || "",
+    employmentType: x.employmentType || "CONTRACT",
+    status: x.status || "sourcing",
+  }); 
+  setEditId(x.id); 
+  setModal(true); 
+}}
                             style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>
                             ✏️ Edit
                           </button>

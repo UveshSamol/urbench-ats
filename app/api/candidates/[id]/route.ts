@@ -1,20 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withRecruiter, AuthenticatedRequest } from "@/lib/middleware/withAuth";
-import { z } from "zod";
-
-const updateSchema = z.object({
-  name: z.string().optional(),
-  email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().optional(),
-  location: z.string().optional(),
-  visaStatus: z.string().optional(),
-  rateExpectation: z.string().optional(),
-  availability: z.string().optional(),
-  employmentType: z.string().optional(),
-  status: z.enum(["sourcing","screening","submitted","interviewing","offered","placed","rejected"]).optional(),
-  resumeText: z.string().optional(),
-});
 
 export const PATCH = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) => {
   const params = await ctx?.params;
@@ -22,8 +8,20 @@ export const PATCH = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) 
   if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
   const body = await req.json();
-  const parsed = updateSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
+  console.log("[CANDIDATE PATCH] id:", id, "body:", JSON.stringify(body));
+
+  // Only pick fields that are safe to update
+  const data: any = {};
+  if (body.name !== undefined) data.name = body.name;
+  if (body.email !== undefined) data.email = body.email || null;
+  if (body.phone !== undefined) data.phone = body.phone || null;
+  if (body.location !== undefined) data.location = body.location || null;
+  if (body.visaStatus !== undefined) data.visaStatus = body.visaStatus || null;
+  if (body.rateExpectation !== undefined) data.rateExpectation = body.rateExpectation || null;
+  if (body.availability !== undefined) data.availability = body.availability || null;
+  if (body.employmentType !== undefined) data.employmentType = body.employmentType || null;
+  if (body.resumeText !== undefined) data.resumeText = body.resumeText || null;
+  if (body.status !== undefined) data.status = body.status;
 
   const candidate = await prisma.candidate.findUnique({ where: { id } });
   if (!candidate) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
@@ -34,7 +32,7 @@ export const PATCH = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) 
 
   const updated = await prisma.candidate.update({
     where: { id },
-    data: { ...parsed.data } as any,
+    data,
   });
 
   return NextResponse.json({ data: updated });

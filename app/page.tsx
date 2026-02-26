@@ -426,7 +426,131 @@ function AITools({ token, notify }: any) {
     </div>
   );
 }
+function UsersPage({ token, notify }: any) {
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [addModal, setAddModal] = useState(false);
+  const [resetModal, setResetModal] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+  const [newPw, setNewPw] = useState("");
+  const [form, setForm] = useState<any>({});
 
+  function load() {
+    setLoading(true);
+    api("/api/users", "GET", null, token)
+      .then(d => setList(d.data || []))
+      .catch(e => notify(e.message, "error"))
+      .finally(() => setLoading(false));
+  }
+  useEffect(() => { load(); }, [token]);
+
+  const filtered = list.filter(x => !search || JSON.stringify(x).toLowerCase().includes(search.toLowerCase()));
+
+  function addUser() {
+    setSaving(true);
+    api("/api/users", "POST", form, token)
+      .then(() => { notify("User added!", "success"); setAddModal(false); setForm({}); load(); })
+      .catch(e => notify(e.message, "error"))
+      .finally(() => setSaving(false));
+  }
+
+  function deleteUser(id: string, name: string) {
+    if (!confirm(`Deactivate ${name}? Their data will be kept.`)) return;
+    api(`/api/users/${id}`, "DELETE", null, token)
+      .then(() => { notify(`${name} deactivated`, "success"); load(); })
+      .catch(e => notify(e.message, "error"));
+  }
+
+  function resetPassword() {
+    if (!newPw || newPw.length < 8) { notify("Password must be at least 8 characters", "error"); return; }
+    setSaving(true);
+    api(`/api/users/${resetModal.id}`, "PATCH", { password: newPw }, token)
+      .then(() => { notify(`Password reset for ${resetModal.name}`, "success"); setResetModal(null); setNewPw(""); })
+      .catch(e => notify(e.message, "error"))
+      .finally(() => setSaving(false));
+  }
+
+  return (
+    <div>
+      <div style={S.bar}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>Manage Users</div>
+        <button type="button" onClick={() => setAddModal(true)} style={S.btn}>+ Add User</button>
+      </div>
+      <div style={S.page}>
+        <div style={S.card}>
+          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>All Users ({list.length})</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
+          </div>
+          {loading ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>Loading...</div> : (
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={S.th}>Name</th>
+                  <th style={S.th}>Email</th>
+                  <th style={S.th}>Role</th>
+                  <th style={S.th}>Status</th>
+                  <th style={S.th}>Added</th>
+                  <th style={S.th}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map((x: any, i: number) => (
+                  <tr key={i}>
+                    <td style={S.tdn}>{x.name}</td>
+                    <td style={S.td}>{x.email}</td>
+                    <td style={S.td}><Badge>{x.role}</Badge></td>
+                    <td style={S.td}><Badge status={x.isActive ? "active" : "rejected"}>{x.isActive ? "Active" : "Inactive"}</Badge></td>
+                    <td style={S.td}>{fmt(x.createdAt)}</td>
+                    <td style={S.td}>
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button type="button" onClick={() => { setResetModal(x); setNewPw(""); }}
+                          style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>
+                          🔑 Reset PW
+                        </button>
+                        {x.isActive && (
+                          <button type="button" onClick={() => deleteUser(x.id, x.name)}
+                            style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid #EF444430", background: "transparent", color: "#EF4444", cursor: "pointer", fontFamily: FONT }}>
+                            🗑 Deactivate
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {addModal && (
+        <Modal title="Add New User" onClose={() => setAddModal(false)} onSave={addUser} saving={saving}>
+          <Field label="Full Name"><input style={S.inp} value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. John Smith" /></Field>
+          <Field label="Email"><input style={S.inp} type="email" value={form.email || ""} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="john@urbench.com" /></Field>
+          <Field label="Password"><input style={S.inp} value={form.password || ""} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="Min 8 characters" /></Field>
+          <Field label="Role">
+            <select style={S.inp} value={form.role || "RECRUITER"} onChange={e => setForm({ ...form, role: e.target.value })}>
+              <option value="RECRUITER">Recruiter</option>
+              <option value="SALES">Sales</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </Field>
+        </Modal>
+      )}
+
+      {resetModal && (
+        <Modal title={`Reset Password — ${resetModal.name}`} onClose={() => setResetModal(null)} onSave={resetPassword} saving={saving}>
+          <div style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>Enter a new password for <strong style={{ color: TEXT }}>{resetModal.name}</strong> ({resetModal.email})</div>
+          <Field label="New Password">
+            <input style={S.inp} type="password" value={newPw} onChange={e => setNewPw(e.target.value)} placeholder="Min 8 characters" />
+          </Field>
+        </Modal>
+      )}
+    </div>
+  );
+}
 export default function Page() {
   const [token, setToken] = useState("");
   const [page, setPage] = useState("dashboard");
@@ -492,25 +616,7 @@ export default function Page() {
           addFields={null} />}
         {page === "analytics" && <Analytics token={token} />}
         {page === "ai" && <AITools token={token} notify={notify} />}
-        {page === "users" && <DataPage title="Users" token={token} notify={notify} endpoint="/api/users" addTitle="User"
-          columns={[
-            { key: "name", label: "Name", isName: true },
-            { key: "email", label: "Email" },
-            { key: "role", label: "Role", render: (x: any) => <Badge>{x.role}</Badge> },
-            { key: "isActive", label: "Status", render: (x: any) => <Badge status={x.isActive ? "active" : "rejected"}>{x.isActive ? "Active" : "Inactive"}</Badge> },
-            { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) },
-          ]}
-          addFields={[
-            { key: "name", label: "Full Name" },
-            { key: "email", label: "Email", type: "email" },
-            { key: "password", label: "Password", placeholder: "Min 8 characters" },
-            { key: "role", label: "Role", type: "select", options: [
-              { value: "RECRUITER", label: "Recruiter" },
-              { value: "SALES", label: "Sales" },
-              { value: "ADMIN", label: "Admin" },
-            ]},
-          ]}
-        />}
+        {page === "users" && <UsersPage token={token} notify={notify} />}
       </div>
 
       {toast.show && <div style={{ position: "fixed", bottom: 20, right: 20, background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, padding: "12px 18px", fontSize: 13, zIndex: 999, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxWidth: 320, borderLeft: toast.type === "success" ? "3px solid #10B981" : toast.type === "error" ? "3px solid #EF4444" : `3px solid ${BRAND}`, color: TEXT }}>{toast.msg}</div>}

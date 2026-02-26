@@ -9,6 +9,8 @@ datasource db {
 
 enum Role {
   ADMIN
+  RECRUITING_MANAGER
+  SALES_MANAGER
   RECRUITER
   SALES
 }
@@ -24,12 +26,13 @@ enum CandidateStatus {
 }
 
 enum SubmissionStatus {
-  submitted
-  reviewing
-  interviewing
-  offered
+  pending_review
+  approved_internally
+  rejected_internally
+  submitted_to_vendor
+  submitted_to_client
+  rejected_by_client
   placed
-  rejected
   withdrawn
 }
 
@@ -67,6 +70,22 @@ enum InterviewStage {
   offer_stage
 }
 
+enum NotificationType {
+  submission_pending_review
+  submission_approved
+  submission_rejected
+  submission_to_client
+  client_rejected
+  placement_made
+}
+
+model Counter {
+  id    String @id
+  value Int    @default(0)
+
+  @@map("counters")
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String
@@ -79,12 +98,13 @@ model User {
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
-  manager       User?     @relation("UserHierarchy", fields: [managerId], references: [id])
-  subordinates  User[]    @relation("UserHierarchy")
-  candidates    Candidate[]
-  jobs          Job[]
-  placements    Placement[]
-  refreshTokens RefreshToken[]
+  manager           User?          @relation("UserHierarchy", fields: [managerId], references: [id])
+  subordinates      User[]         @relation("UserHierarchy")
+  candidates        Candidate[]
+  jobs              Job[]
+  placements        Placement[]
+  refreshTokens     RefreshToken[]
+  notifications     Notification[]
 
   @@map("users")
 }
@@ -104,6 +124,7 @@ model RefreshToken {
 
 model Client {
   id            String   @id @default(cuid())
+  clientId      String   @unique @map("client_id")
   name          String
   industry      String?
   contactName   String?  @map("contact_name")
@@ -138,6 +159,7 @@ model POC {
 
 model Candidate {
   id               String          @id @default(cuid())
+  candidateId      String          @unique @map("candidate_id")
   name             String
   email            String?
   phone            String?
@@ -153,6 +175,7 @@ model Candidate {
   employmentType   String?         @map("employment_type")
   resumeText       String?         @map("resume_text") @db.Text
   aiSummary        String?         @map("ai_summary") @db.Text
+  resumeUrl        String?         @map("resume_url")
   status           CandidateStatus @default(sourcing)
   recruiterId      String          @map("recruiter_id")
   ceipalId         String?         @unique @map("ceipal_id")
@@ -175,6 +198,7 @@ model Candidate {
 
 model Job {
   id               String       @id @default(cuid())
+  jobId            String       @unique @map("job_id")
   clientId         String       @map("client_id")
   title            String
   location         String?
@@ -193,6 +217,7 @@ model Job {
   visaSponsorship  String?      @map("visa_sponsorship")
   remote           String?
   description      String?      @db.Text
+  isHot            Boolean      @default(false) @map("is_hot")
   status           JobStatus    @default(Open)
   recruiterId      String       @map("recruiter_id")
   autoShortlisted  Boolean      @default(false) @map("auto_shortlisted")
@@ -213,13 +238,16 @@ model Job {
 
 model Submission {
   id              String           @id @default(cuid())
+  submissionId    String           @unique @map("submission_id")
   candidateId     String           @map("candidate_id")
   jobId           String           @map("job_id")
   submittedById   String?          @map("submitted_by_id")
+  reviewedById    String?          @map("reviewed_by_id")
   submissionDate  DateTime         @default(now()) @map("submission_date")
   interviewStage  InterviewStage?  @map("interview_stage")
   clientFeedback  String?          @map("client_feedback") @db.Text
-  status          SubmissionStatus @default(submitted)
+  internalNotes   String?          @map("internal_notes") @db.Text
+  status          SubmissionStatus @default(pending_review)
   notes           String?          @db.Text
   interviewDate   DateTime?        @map("interview_date")
   offerAmount     Float?           @map("offer_amount")
@@ -232,6 +260,23 @@ model Submission {
   @@unique([candidateId, jobId])
   @@index([status])
   @@map("submissions")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false) @map("is_read")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
 }
 
 model Match {

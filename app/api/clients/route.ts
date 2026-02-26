@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAnyRole, withSales, AuthenticatedRequest } from "@/lib/middleware/withAuth";
+import { generateId } from "@/lib/autoId";
 import { z } from "zod";
 
 const createSchema = z.object({
   name: z.string().min(1, "Client name required"),
   industry: z.string().optional(),
+  contactName: z.string().optional(),
+  contactEmail: z.string().optional(),
   rateAgreement: z.string().optional(),
   notes: z.string().optional(),
   website: z.string().optional(),
@@ -18,7 +21,12 @@ export const GET = withAnyRole(async (req: AuthenticatedRequest) => {
   const clients = await prisma.client.findMany({
     where: {
       isActive: true,
-      ...(search && { name: { contains: search, mode: "insensitive" } }),
+      ...(search && {
+        OR: [
+          { name: { contains: search, mode: "insensitive" } },
+          { clientId: { contains: search, mode: "insensitive" } },
+        ],
+      }),
     },
     include: {
       pocs: { where: { isPrimary: true }, take: 1 },
@@ -41,10 +49,15 @@ export const POST = withSales(async (req: AuthenticatedRequest) => {
     );
   }
 
+  const clientId = await generateId("CLT");
+
   const client = await prisma.client.create({
     data: {
+      clientId,
       name: parsed.data.name,
       industry: parsed.data.industry || null,
+      contactName: parsed.data.contactName || null,
+      contactEmail: parsed.data.contactEmail || null,
       rateAgreement: parsed.data.rateAgreement || null,
       notes: parsed.data.notes || null,
       website: parsed.data.website || null,

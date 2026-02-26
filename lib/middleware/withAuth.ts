@@ -75,7 +75,7 @@ export function withAuth(handler: RouteHandler, options: AuthOptions = {}) {
 }
 
 export function buildRecruiterFilter(user: JWTPayload): { recruiterId?: string } {
-  if (user.role === Role.ADMIN) return {};
+  if (user.role === Role.ADMIN || user.role === Role.RECRUITING_MANAGER || user.role === Role.SALES_MANAGER) return {};
   return { recruiterId: user.userId };
 }
 
@@ -95,5 +95,6 @@ function forbidden(message: string) {
 
 export const withAnyRole = (handler: RouteHandler) => withAuth(handler);
 export const withAdmin = (handler: RouteHandler) => withAuth(handler, { roles: [Role.ADMIN] });
-export const withSales = (handler: RouteHandler) => withAuth(handler, { roles: [Role.ADMIN, Role.SALES] });
-export const withRecruiter = (handler: RouteHandler) => withAuth(handler, { roles: [Role.ADMIN, Role.RECRUITER] });
+export const withSales = (handler: RouteHandler) => withAuth(handler, { roles: [Role.ADMIN, Role.SALES_MANAGER, Role.SALES] });
+export const withRecruiter = (handler: RouteHandler) => withAuth(handler, { roles: [Role.ADMIN, Role.RECRUITING_MANAGER, Role.RECRUITER] });
+export const withManager = (handler: RouteHandler) => withAuth(handler, { roles: [Role.ADMIN, Role.RECRUITING_MANAGER, Role.SALES_MANAGER] });

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withRecruiter, buildRecruiterFilter, AuthenticatedRequest } from "@/lib/middleware/withAuth";
 import { detectDuplicate } from "@/lib/ai/ai.service";
 import { auditLog } from "@/lib/audit";
+import { generateId } from "@/lib/autoId";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -42,6 +43,7 @@ export const GET = withRecruiter(async (req: AuthenticatedRequest) => {
         { name: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
         { location: { contains: search, mode: "insensitive" } },
+        { candidateId: { contains: search, mode: "insensitive" } },
       ],
     }),
     ...(module_ && { sapModules: { has: module_ } }),
@@ -69,25 +71,19 @@ export const GET = withRecruiter(async (req: AuthenticatedRequest) => {
 
 export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
   const body = await req.json();
-  console.log("[CANDIDATE POST] body:", JSON.stringify(body));
-
   const parsed = createSchema.safeParse(body);
 
   if (!parsed.success) {
-    console.log("[CANDIDATE POST] validation failed:", JSON.stringify(parsed.error.flatten()));
     return NextResponse.json(
       { error: "VALIDATION_ERROR", issues: parsed.error.flatten() },
       { status: 400 }
     );
   }
 
-  // Safe duplicate check - skip if no email/phone
+  // Safe duplicate check
   if (parsed.data.email || parsed.data.phone) {
     try {
-      const dupCheck = await detectDuplicate(
-        parsed.data.email,
-        parsed.data.phone
-      );
+      const dupCheck = await detectDuplicate(parsed.data.email, parsed.data.phone);
       if (dupCheck.isDuplicate) {
         return NextResponse.json({
           error: "DUPLICATE_CANDIDATE",
@@ -97,12 +93,14 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
       }
     } catch (e) {
       console.error("[CANDIDATE POST] duplicate check failed:", e);
-      // Continue even if duplicate check fails
     }
   }
 
+  const candidateId = await generateId("CAN");
+
   const candidate = await prisma.candidate.create({
     data: {
+      candidateId,
       name: parsed.data.name,
       email: parsed.data.email || null,
       phone: parsed.data.phone || null,

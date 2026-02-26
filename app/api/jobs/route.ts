@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { withRecruiter, AuthenticatedRequest } from "@/lib/middleware/withAuth";
 import { auditLog } from "@/lib/audit";
 import { autoShortlistForJob } from "@/lib/jobs/auto-shortlist";
+import { generateId } from "@/lib/autoId";
 import { z } from "zod";
 
 const createSchema = z.object({
@@ -14,6 +15,8 @@ const createSchema = z.object({
   durationMonths: z.number().int().optional(),
   rate: z.string().optional(),
   rateNumeric: z.number().optional(),
+  currency: z.string().optional(),
+  paymentType: z.string().optional(),
   requiredModules: z.array(z.string()).default([]),
   preferredModules: z.array(z.string()).default([]),
   requiredYears: z.number().int().optional(),
@@ -22,8 +25,7 @@ const createSchema = z.object({
   visaSponsorship: z.string().optional(),
   remote: z.string().optional(),
   description: z.string().optional(),
-  currency: z.string().optional(),
-  paymentType: z.string().optional(),
+  isHot: z.boolean().default(false),
   runAutoShortlist: z.boolean().default(false),
 });
 
@@ -31,12 +33,22 @@ export const GET = withRecruiter(async (req: AuthenticatedRequest) => {
   const url = new URL(req.url);
   const status = url.searchParams.get("status") || undefined;
   const clientId = url.searchParams.get("clientId") || undefined;
+  const isHot = url.searchParams.get("isHot") || undefined;
   const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
   const limit = Math.min(100, parseInt(url.searchParams.get("limit") || "25"));
+  const search = url.searchParams.get("search") || "";
 
   const where: any = {
     ...(status && { status }),
     ...(clientId && { clientId }),
+    ...(isHot === "true" && { isHot: true }),
+    ...(search && {
+      OR: [
+        { title: { contains: search, mode: "insensitive" } },
+        { jobId: { contains: search, mode: "insensitive" } },
+        { location: { contains: search, mode: "insensitive" } },
+      ],
+    }),
   };
 
   const [jobs, total] = await Promise.all([
@@ -44,7 +56,7 @@ export const GET = withRecruiter(async (req: AuthenticatedRequest) => {
       where,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ isHot: "desc" }, { createdAt: "desc" }],
       include: {
         client: { select: { id: true, name: true } },
         recruiter: { select: { id: true, name: true } },
@@ -72,9 +84,11 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
   }
 
   const { runAutoShortlist, ...jobData } = parsed.data;
+  const jobId = await generateId("JOB");
 
   const job = await prisma.job.create({
     data: {
+      jobId,
       clientId: jobData.clientId,
       title: jobData.title,
       location: jobData.location || null,
@@ -83,6 +97,8 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
       durationMonths: jobData.durationMonths ?? null,
       rate: jobData.rate || null,
       rateNumeric: jobData.rateNumeric ?? null,
+      currency: jobData.currency || "USD",
+      paymentType: jobData.paymentType || "Hourly",
       requiredModules: jobData.requiredModules,
       preferredModules: jobData.preferredModules,
       requiredYears: jobData.requiredYears ?? null,
@@ -91,9 +107,8 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
       visaSponsorship: jobData.visaSponsorship || null,
       remote: jobData.remote || null,
       description: jobData.description || null,
+      isHot: jobData.isHot || false,
       recruiterId: req.user.userId,
-      currency: jobData.currency || "USD",
-      paymentType: jobData.paymentType || "Hourly",
     },
   });
 

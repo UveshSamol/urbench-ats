@@ -22,7 +22,7 @@ const bc = (s: string) => {
   if (["active","open","placed","completed"].some(x => l.includes(x))) return "#10B981";
   if (["pending","submitted","interview","review"].some(x => l.includes(x))) return "#F59E0B";
   if (["rejected","closed","cancel"].some(x => l.includes(x))) return "#EF4444";
-  return "#00D4FF";
+  return "#BRAND";
 };
 
 /* ─── Styles ─── */
@@ -31,7 +31,7 @@ const S = {
   th: { padding: "10px 18px", textAlign: "left" as const, fontSize: 10, fontWeight: 600, color: "#3A3D55", textTransform: "uppercase" as const, letterSpacing: "0.8px", borderBottom: "1px solid #1A1B2E", background: "#08090F" },
   td: { padding: "12px 18px", fontSize: 13, borderBottom: "1px solid #1A1B2E", color: "#8B90B0" },
   tdn: { padding: "12px 18px", fontSize: 13, borderBottom: "1px solid #1A1B2E", color: "#E8ECF4", fontWeight: 500 },
-  btn: { display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", background: "linear-gradient(90deg,#00D4FF,#7B2FFF,#D000FF)", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" } as React.CSSProperties,
+  btn: { display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", background: "linear-gradient(90deg,#BRAND,#7B2FFF,ACCENT)", border: "none", borderRadius: 8, color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer" } as React.CSSProperties,
   card: { background: "#0C0D16", border: "1px solid #1A1B2E", borderRadius: 12, overflow: "hidden" as const },
   page: { padding: "24px 28px" },
   bar: { padding: "18px 28px", borderBottom: "1px solid #1A1B2E", background: "#0A0B12", display: "flex", alignItems: "center", justifyContent: "space-between" } as React.CSSProperties,
@@ -46,7 +46,7 @@ function Badge({ children, status }: { children: string; status?: string }) {
 function Stat({ label, value, color }: { label: string; value: string | number; color: string }) {
   return (
     <div style={{ ...S.card, padding: 18, position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg,#00D4FF,#7B2FFF,#D000FF)", opacity: 0.4 }} />
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg,#BRAND,#7B2FFF,ACCENT)", opacity: 0.4 }} />
       <div style={{ fontSize: 12, color: "#6B7094", marginBottom: 8 }}>{label}</div>
       <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: "-0.8px", color }}>{value}</div>
     </div>
@@ -84,7 +84,7 @@ function SimpleBar({ data, labelKey, valueKey }: { data: any[]; labelKey: string
       {data.map((d, i) => (
         <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
           <div style={{ fontSize: 11, color: "#6B7094" }}>${(d[valueKey] / 1000).toFixed(0)}k</div>
-          <div style={{ width: "100%", maxWidth: 40, height: `${(d[valueKey] / max) * 120}px`, background: "linear-gradient(180deg,#00D4FF,#D000FF)", borderRadius: "4px 4px 0 0", minHeight: 4 }} />
+          <div style={{ width: "100%", maxWidth: 40, height: `${(d[valueKey] / max) * 120}px`, background: "linear-gradient(180deg,#BRAND,ACCENT)", borderRadius: "4px 4px 0 0", minHeight: 4 }} />
           <div style={{ fontSize: 10, color: "#3A3D55" }}>{d[labelKey]}</div>
         </div>
       ))}
@@ -114,9 +114,9 @@ function LoginPage({ onLogin }: { onLogin: (t: string) => void }) {
         <div style={{ textAlign: "center", marginBottom: 28 }}>
           <div style={{ fontSize: 36, fontWeight: 900, letterSpacing: -1, marginBottom: 6 }}>
             <span style={{ color: "#fff" }}>Ur</span>
-            <span style={{ background: "linear-gradient(90deg,#00D4FF,#7B2FFF,#D000FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Bench</span>
+            <span style={{ background: "linear-gradient(90deg,#BRAND,#7B2FFF,ACCENT)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Bench</span>
           </div>
-          <div style={{ height: 3, width: 80, background: "linear-gradient(90deg,#00D4FF,#7B2FFF,#D000FF)", borderRadius: 2, margin: "0 auto 8px" }} />
+          <div style={{ height: 3, width: 80, background: "linear-gradient(90deg,#BRAND,#7B2FFF,ACCENT)", borderRadius: 2, margin: "0 auto 8px" }} />
           <div style={{ fontSize: 13, color: "#6B7094", fontStyle: "italic" }}>Building Trust, Exceeding Expectations</div>
         </div>
         <div style={{ background: "#0C0D16", border: "1px solid #1A1B2E", borderRadius: 16, padding: "36px 32px" }}>
@@ -163,20 +163,20 @@ function Dashboard({ token, goTo, notify }: any) {
       <div style={S.bar}><div style={{ fontSize: 18, fontWeight: 700 }}>Dashboard</div></div>
       <div style={S.page}>
         <div style={{ background: "linear-gradient(135deg,rgba(0,212,255,0.06),rgba(208,0,255,0.04))", border: "1px solid #1A1B2E", borderRadius: 14, padding: "22px 24px", marginBottom: 20 }}>
-          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Welcome to <span style={{ background: "linear-gradient(90deg,#00D4FF,#7B2FFF,#D000FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800 }}>UrBench ATS</span></div>
+          <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Welcome to <span style={{ background: "linear-gradient(90deg,#BRAND,#7B2FFF,ACCENT)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", fontWeight: 800 }}>UrBench ATS</span></div>
           <div style={{ fontSize: 13, color: "#6B7094" }}>Your SAP staffing pipeline at a glance</div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 24 }}>
-          <Stat label="Candidates" value={d.c.length} color="#00D4FF" />
+          <Stat label="Candidates" value={d.c.length} color="#BRAND" />
           <Stat label="Open Jobs" value={d.j.length} color="#10B981" />
-          <Stat label="Clients" value={d.cl.length} color="#D000FF" />
+          <Stat label="Clients" value={d.cl.length} color="ACCENT" />
           <Stat label="Submissions" value={d.s.length} color="#F59E0B" />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <div style={S.card}>
             <div style={{ padding: "14px 18px", borderBottom: "1px solid #1A1B2E", display: "flex", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontWeight: 600 }}>Recent Candidates</span>
-              <button type="button" onClick={() => goTo("candidates")} style={{ fontSize: 12, color: "#00D4FF", background: "none", border: "none", cursor: "pointer" }}>View all →</button>
+              <button type="button" onClick={() => goTo("candidates")} style={{ fontSize: 12, color: "#BRAND", background: "none", border: "none", cursor: "pointer" }}>View all →</button>
             </div>
             {d.c.length === 0 && <div style={{ padding: 24, textAlign: "center", color: "#3A3D55", fontSize: 13 }}>No candidates yet</div>}
             {d.c.slice(0, 5).map((x: any, i: number) => (
@@ -189,7 +189,7 @@ function Dashboard({ token, goTo, notify }: any) {
           <div style={S.card}>
             <div style={{ padding: "14px 18px", borderBottom: "1px solid #1A1B2E", display: "flex", justifyContent: "space-between" }}>
               <span style={{ fontSize: 14, fontWeight: 600 }}>Open Jobs</span>
-              <button type="button" onClick={() => goTo("jobs")} style={{ fontSize: 12, color: "#00D4FF", background: "none", border: "none", cursor: "pointer" }}>View all →</button>
+              <button type="button" onClick={() => goTo("jobs")} style={{ fontSize: 12, color: "#BRAND", background: "none", border: "none", cursor: "pointer" }}>View all →</button>
             </div>
             {d.j.length === 0 && <div style={{ padding: 24, textAlign: "center", color: "#3A3D55", fontSize: 13 }}>No jobs yet</div>}
             {d.j.slice(0, 5).map((x: any, i: number) => (
@@ -304,8 +304,8 @@ function Analytics({ token }: any) {
         {loading ? <div style={{ padding: 60, textAlign: "center", color: "#3A3D55" }}>Loading...</div> : <>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 24 }}>
             <Stat label="Total Placements" value={rec?.totalPlacements || rec?.placements || 0} color="#10B981" />
-            <Stat label="Active Submissions" value={rec?.activeSubmissions || rec?.submissions || 0} color="#00D4FF" />
-            <Stat label="Fill Rate" value={`${rec?.fillRate || rec?.fill_rate || 0}%`} color="#D000FF" />
+            <Stat label="Active Submissions" value={rec?.activeSubmissions || rec?.submissions || 0} color="#BRAND" />
+            <Stat label="Fill Rate" value={`${rec?.fillRate || rec?.fill_rate || 0}%`} color="ACCENT" />
             <Stat label="Revenue" value={`$${Math.floor((rec?.revenue || rec?.totalRevenue || 0) / 1000)}k`} color="#F59E0B" />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
@@ -315,7 +315,7 @@ function Analytics({ token }: any) {
             </div>
             <div style={{ ...S.card, padding: 18 }}>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>Recruiter Metrics</div>
-              {[{ l: "Avg Time to Fill", v: `${rec?.avgTimeToFill || 14} days`, c: "#00D4FF" }, { l: "Sub → Interview", v: `${rec?.subToInterview || 45}%`, c: "#7B2FFF" }, { l: "Interview → Offer", v: `${rec?.interviewToOffer || 62}%`, c: "#D000FF" }, { l: "Offer Acceptance", v: `${rec?.offerAcceptance || 88}%`, c: "#10B981" }].map((m, i) => (
+              {[{ l: "Avg Time to Fill", v: `${rec?.avgTimeToFill || 14} days`, c: "#BRAND" }, { l: "Sub → Interview", v: `${rec?.subToInterview || 45}%`, c: "#7B2FFF" }, { l: "Interview → Offer", v: `${rec?.interviewToOffer || 62}%`, c: "ACCENT" }, { l: "Offer Acceptance", v: `${rec?.offerAcceptance || 88}%`, c: "#10B981" }].map((m, i) => (
                 <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "#08090F", borderRadius: 8, border: "1px solid #1A1B2E", marginBottom: 8 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: m.c }} /><span style={{ fontSize: 13, color: "#6B7094" }}>{m.l}</span></div>
                   <span style={{ fontSize: 14, fontWeight: 600 }}>{m.v}</span>
@@ -335,13 +335,18 @@ function AITools({ token, notify }: any) {
   const [txt, setTxt] = useState("");
   const [res, setRes] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [cid, setCid] = useState(""); const [jid, setJid] = useState("");
+  const [cid, setCid] = useState("");
+  const [jid, setJid] = useState("");
 
   function run() {
-    setLoading(true); setRes(null);
+    setLoading(true);
+    setRes(null);
     const ep = tab === "resume" ? "/api/ai/parse-resume" : tab === "jd" ? "/api/ai/parse-jd" : "/api/ai/match";
     const bd = tab === "match" ? { candidateId: cid, jobId: jid } : { text: txt, resumeText: txt, description: txt };
-    api(ep, "POST", bd, token).then(d => { setRes(d); notify("AI analysis complete!", "success"); }).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
+    api(ep, "POST", bd, token)
+      .then(d => { setRes(d); notify("AI analysis complete!", "success"); })
+      .catch(e => notify(e.message, "error"))
+      .finally(() => setLoading(false));
   }
 
   return (
@@ -350,22 +355,63 @@ function AITools({ token, notify }: any) {
       <div style={S.page}>
         <div style={{ display: "flex", gap: 6, marginBottom: 20 }}>
           {[{ id: "resume", l: "Parse Resume" }, { id: "jd", l: "Parse JD" }, { id: "match", l: "AI Match" }].map(t => (
-            <button key={t.id} type="button" onClick={() => { setTab(t.id); setRes(null); setTxt(""); }} style={{ padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: tab === t.id ? 600 : 400, cursor: "pointer", border: tab === t.id ? "none" : "1px solid #1A1B2E", background: tab === t.id ? "linear-gradient(90deg,#00D4FF,#7B2FFF,#D000FF)" : "#0C0D16", color: tab === t.id ? "#fff" : "#6B7094" }}>{t.l}</button>
+            <button key={t.id} type="button" onClick={() => { setTab(t.id); setRes(null); setTxt(""); }}
+              style={{ padding: "8px 16px", borderRadius: 8, fontSize: 13, fontWeight: tab === t.id ? 600 : 400, cursor: "pointer", border: tab === t.id ? "none" : "1px solid #1A1B2E", background: tab === t.id ? "linear-gradient(90deg,#00D4FF,#7B2FFF,#D000FF)" : "#0C0D16", color: tab === t.id ? "#fff" : "#6B7094" }}>
+              {t.l}
+            </button>
           ))}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
           <div style={{ ...S.card, padding: 18 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>{tab === "resume" ? "Paste Resume" : tab === "jd" ? "Paste Job Description" : "Match Candidate to Job"}</div>
-            {tab === "match" ? <>
-              <Field label="Candidate ID"><input style={S.inp} value={cid} onChange={e => setCid(e.target.value)} placeholder="Enter candidate ID" /></Field>
-              <Field label="Job ID"><input style={S.inp} value={jid} onChange={e => setJid(e.target.value)} placeholder="Enter job ID" /></Field>
-            </> : <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="Paste content here..." style={{ ...S.inp, minHeight: 200, resize: "vertical" }} />}
-            <button type="button" onClick={run} disabled={loading} style={{ ...S.btn, marginTop: 12, opacity: loading ? 0.6 : 1 }}>{loading ? "Analyzing..." : "⚡ Run AI Analysis"}</button>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>
+              {tab === "resume" ? "Paste Resume" : tab === "jd" ? "Paste Job Description" : "Match Candidate to Job"}
+            </div>
+            {tab === "match" ? (
+              <>
+                <Field label="Candidate ID"><input style={S.inp} value={cid} onChange={e => setCid(e.target.value)} placeholder="Enter candidate ID" /></Field>
+                <Field label="Job ID"><input style={S.inp} value={jid} onChange={e => setJid(e.target.value)} placeholder="Enter job ID" /></Field>
+              </>
+            ) : (
+              <textarea value={txt} onChange={e => setTxt(e.target.value)} placeholder="Paste content here..." style={{ ...S.inp, minHeight: 200, resize: "vertical" }} />
+            )}
+            <button type="button" onClick={run} disabled={loading} style={{ ...S.btn, marginTop: 12, opacity: loading ? 0.6 : 1 }}>
+              {loading ? "Analyzing..." : "⚡ Run AI Analysis"}
+            </button>
           </div>
           <div style={{ ...S.card, padding: 18 }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Results</div>
-            {!res ? <div style={{ textAlign: "center", padding: "60px 20px", color: "#2E3148" }}>🤖<br />Run an analysis to see results</div> :
-              <pre style={{ background: "#08090F", border: "1px solid #1A1B2E", borderRadius: 8, padding: 14, fontSize: 12, color: "#8B90B0", overflow: "auto", maxHeight: 340, whiteSpace: "pre-wrap", fontFamily: "monospace" }}>{JSON.stringify(res, null, 2)}</pre>}
+            {!res ? (
+              <div style={{ textAlign: "center", padding: "60px 20px", color: "#2E3148" }}>
+                🤖<br />Run an analysis to see results
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 400, overflowY: "auto" }}>
+                {res?.data && Object.entries(res.data).map(([key, value]: any) => (
+                  <div key={key} style={{ background: "#08090F", border: "1px solid #1A1B2E", borderRadius: 8, padding: "10px 14px" }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: "#3A3D55", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: 4 }}>
+                      {key.replace(/([A-Z])/g, " $1").trim()}
+                    </div>
+                    <div style={{ fontSize: 13, color: "#E8ECF4" }}>
+                      {Array.isArray(value) ? (
+                        value.length > 0 ? (
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                            {value.map((v: string, i: number) => (
+                              <span key={i} style={{ background: "#1A1B2E", padding: "2px 8px", borderRadius: 10, fontSize: 11 }}>{v}</span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span style={{ color: "#3A3D55" }}>None</span>
+                        )
+                      ) : typeof value === "number" ? (
+                        <span style={{ color: "#00D4FF", fontWeight: 600, fontSize: 18 }}>{value}</span>
+                      ) : (
+                        String(value) || "—"
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -402,16 +448,16 @@ export default function Page() {
       <div style={{ width: 230, background: "#0A0B12", borderRight: "1px solid #1A1B2E", display: "flex", flexDirection: "column", flexShrink: 0, position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 50 }}>
         <div style={{ padding: "20px 18px 16px", borderBottom: "1px solid #1A1B2E" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: "linear-gradient(90deg,#00D4FF,#D000FF)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: "#fff", fontFamily: "monospace" }}>Ur</div>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: "linear-gradient(90deg,#BRAND,ACCENT)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: "#fff", fontFamily: "monospace" }}>Ur</div>
             <div>
-              <div style={{ fontSize: 17, fontWeight: 800 }}><span style={{ color: "#fff" }}>Ur</span><span style={{ background: "linear-gradient(90deg,#00D4FF,#7B2FFF,#D000FF)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Bench</span></div>
-              <div style={{ fontSize: 9, fontWeight: 600, color: "#00D4FF", background: "rgba(0,212,255,0.1)", padding: "1px 7px", borderRadius: 10, display: "inline-block", letterSpacing: "0.8px", textTransform: "uppercase", marginTop: 2 }}>ATS Platform</div>
+              <div style={{ fontSize: 17, fontWeight: 800 }}><span style={{ color: "#fff" }}>Ur</span><span style={{ background: "linear-gradient(90deg,#BRAND,#7B2FFF,ACCENT)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Bench</span></div>
+              <div style={{ fontSize: 9, fontWeight: 600, color: "#BRAND", background: "rgba(0,212,255,0.1)", padding: "1px 7px", borderRadius: 10, display: "inline-block", letterSpacing: "0.8px", textTransform: "uppercase", marginTop: 2 }}>ATS Platform</div>
             </div>
           </div>
         </div>
         <div style={{ flex: 1, padding: "14px 10px", display: "flex", flexDirection: "column", gap: 1, overflowY: "auto" }}>
           {navItems.map(n => (
-            <button key={n.id} type="button" onClick={() => setPage(n.id)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 8, color: page === n.id ? "#00D4FF" : "#6B7094", fontSize: 13, fontWeight: page === n.id ? 500 : 400, cursor: "pointer", border: "none", background: page === n.id ? "rgba(0,212,255,0.08)" : "transparent", width: "100%", textAlign: "left", fontFamily: "inherit" }}>{n.label}</button>
+            <button key={n.id} type="button" onClick={() => setPage(n.id)} style={{ display: "flex", alignItems: "center", gap: 9, padding: "9px 10px", borderRadius: 8, color: page === n.id ? "#BRAND" : "#6B7094", fontSize: 13, fontWeight: page === n.id ? 500 : 400, cursor: "pointer", border: "none", background: page === n.id ? "rgba(0,212,255,0.08)" : "transparent", width: "100%", textAlign: "left", fontFamily: "inherit" }}>{n.label}</button>
           ))}
         </div>
         <div style={{ padding: "12px 10px", borderTop: "1px solid #1A1B2E" }}>
@@ -440,7 +486,7 @@ export default function Page() {
       </div>
 
       {/* Toast */}
-      {toast.show && <div style={{ position: "fixed", bottom: 20, right: 20, background: "#0F1018", border: "1px solid #1A1B2E", borderRadius: 10, padding: "12px 18px", fontSize: 13, zIndex: 999, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxWidth: 320, borderLeft: toast.type === "success" ? "3px solid #10B981" : toast.type === "error" ? "3px solid #EF4444" : "3px solid #00D4FF" }}>{toast.msg}</div>}
+      {toast.show && <div style={{ position: "fixed", bottom: 20, right: 20, background: "#0F1018", border: "1px solid #1A1B2E", borderRadius: 10, padding: "12px 18px", fontSize: 13, zIndex: 999, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", maxWidth: 320, borderLeft: toast.type === "success" ? "3px solid #10B981" : toast.type === "error" ? "3px solid #EF4444" : "3px solid #BRAND" }}>{toast.msg}</div>}
     </div>
   );
 }

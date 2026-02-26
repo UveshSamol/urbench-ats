@@ -75,9 +75,12 @@ model User {
   role          Role      @default(RECRUITER)
   isActive      Boolean   @default(true) @map("is_active")
   lastLoginAt   DateTime? @map("last_login_at")
+  managerId     String?   @map("manager_id")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
+  manager       User?     @relation("UserHierarchy", fields: [managerId], references: [id])
+  subordinates  User[]    @relation("UserHierarchy")
   candidates    Candidate[]
   jobs          Job[]
   placements    Placement[]

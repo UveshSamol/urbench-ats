@@ -1,65 +1,47 @@
-import { NextRequest, NextResponse } from "next/server";
-import { withAdmin } from "@/lib/middleware/withAuth";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { createUser } from "@/lib/auth/auth.service";
+import { withAdmin, AuthenticatedRequest } from "@/lib/middleware/withAuth";
+import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { Role } from "@prisma/client";
 
-/* ─────────────── GET ALL USERS (ADMIN ONLY) ─────────────── */
-export const GET = withAdmin(async () => {
+const createSchema = z.object({
+  name: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(["ADMIN", "RECRUITER", "SALES"]),
+  managerId: z.string().optional(),
+  password: z.string().min(8).default("Welcome1234!"),
+});
+
+export const GET = withAdmin(async (req: AuthenticatedRequest) => {
   const users = await prisma.user.findMany({
     select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isActive: true,
-      createdAt: true,
-      lastLoginAt: true,
+      id: true, name: true, email: true, role: true,
+      isActive: true, createdAt: true, lastLoginAt: true,
+      managerId: true,
+      _count: { select: { candidates: true } },
     },
     orderBy: { createdAt: "desc" },
   });
-
   return NextResponse.json({ data: users });
 });
 
-/* ─────────────── CREATE USER (ADMIN ONLY) ─────────────── */
-const schema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(6),
-  role: z.nativeEnum(Role),
-});
-
-export const POST = withAdmin(async (req: NextRequest) => {
+export const POST = withAdmin(async (req: AuthenticatedRequest) => {
   const body = await req.json();
-  const parsed = schema.safeParse(body);
+  const parsed = createSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
 
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "VALIDATION_ERROR", issues: parsed.error.flatten() },
-      { status: 400 }
-    );
-  }
+  const existing = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+  if (existing) return NextResponse.json({ error: "EMAIL_EXISTS" }, { status: 409 });
 
-  const { name, email, password, role } = parsed.data;
-
-  try {
-    const user = await createUser({
-      name,
-      email,
-      password,
-      role,
-    });
-
-    return NextResponse.json({ message: "User created", user });
-  } catch (err: any) {
-    if (err.message === "EMAIL_ALREADY_EXISTS") {
-      return NextResponse.json(
-        { error: "EMAIL_ALREADY_EXISTS" },
-        { status: 400 }
-      );
-    }
-    return NextResponse.json({ error: "SERVER_ERROR" }, { status: 500 });
-  }
+  const hash = await bcrypt.hash(parsed.data.password, 12);
+  const user = await prisma.user.create({
+    data: {
+      name: parsed.data.name,
+      email: parsed.data.email,
+      role: parsed.data.role,
+      passwordHash: hash,
+      managerId: parsed.data.managerId || null,
+    },
+  });
+  return NextResponse.json({ data: user }, { status: 201 });
 });

@@ -18,13 +18,13 @@ const updateSchema = z.object({
 });
 
 export const PATCH = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) => {
-  const id = ctx?.params?.id;
+  const params = await ctx?.params;
+  const id = params?.id;
+  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
-  }
+  if (!parsed.success) return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
 
   const job = await prisma.job.findUnique({ where: { id } });
   if (!job) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
@@ -35,26 +35,16 @@ export const PATCH = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) 
 
   const updated = await prisma.job.update({
     where: { id },
-    data: {
-      ...(parsed.data.title && { title: parsed.data.title }),
-      ...(parsed.data.description !== undefined && { description: parsed.data.description || null }),
-      ...(parsed.data.location !== undefined && { location: parsed.data.location || null }),
-      ...(parsed.data.type && { type: parsed.data.type }),
-      ...(parsed.data.rate !== undefined && { rate: parsed.data.rate || null }),
-      ...(parsed.data.rateNumeric !== undefined && { rateNumeric: parsed.data.rateNumeric }),
-      ...(parsed.data.currency !== undefined && { currency: parsed.data.currency || "USD" }),
-      ...(parsed.data.paymentType !== undefined && { paymentType: parsed.data.paymentType || "Hourly" }),
-      ...(parsed.data.duration !== undefined && { duration: parsed.data.duration || null }),
-      ...(parsed.data.remote !== undefined && { remote: parsed.data.remote || null }),
-      ...(parsed.data.status !== undefined && { status: parsed.data.status }),
-    },
+    data: { ...parsed.data } as any,
   });
 
   return NextResponse.json({ data: updated });
 });
 
 export const DELETE = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) => {
-  const id = ctx?.params?.id;
+  const params = await ctx?.params;
+  const id = params?.id;
+  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
   const job = await prisma.job.findUnique({ where: { id } });
   if (!job) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });

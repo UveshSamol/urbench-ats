@@ -896,6 +896,17 @@ function SubmissionsPage({ token, notify }: any) {
           <Field label="Notes">
             <textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form.notes || ""} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any notes about this submission..." />
           </Field>
+          <Field label="Status">
+  <select style={S.inp} value={form.status || "submitted"} onChange={e => setForm({ ...form, status: e.target.value })}>
+    <option value="submitted">Submitted</option>
+    <option value="reviewing">Reviewing</option>
+    <option value="interviewing">Interviewing</option>
+    <option value="offered">Offered</option>
+    <option value="placed">Placed</option>
+    <option value="rejected">Rejected</option>
+    <option value="withdrawn">Withdrawn</option>
+  </select>
+</Field>
           <Field label="Interview Date">
             <input style={S.inp} type="date" value={form.interviewDate || ""} onChange={e => setForm({ ...form, interviewDate: e.target.value })} />
           </Field>

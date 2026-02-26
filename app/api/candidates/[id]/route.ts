@@ -1,4 +1,4 @@
-    import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withRecruiter, AuthenticatedRequest } from "@/lib/middleware/withAuth";
 import { z } from "zod";
@@ -17,15 +17,14 @@ const updateSchema = z.object({
 });
 
 export const PATCH = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) => {
-  const id = ctx?.params?.id;
+  const params = await ctx?.params;
+  const id = params?.id;
+  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
 
-  if (!parsed.success) {
-    return NextResponse.json({ error: "VALIDATION_ERROR", issues: parsed.error.flatten() }, { status: 400 });
-  }
-
-  // Check ownership — recruiter can only edit their own, admin can edit all
   const candidate = await prisma.candidate.findUnique({ where: { id } });
   if (!candidate) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });
 
@@ -35,25 +34,16 @@ export const PATCH = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) 
 
   const updated = await prisma.candidate.update({
     where: { id },
-    data: {
-      ...(parsed.data.name && { name: parsed.data.name }),
-      ...(parsed.data.email !== undefined && { email: parsed.data.email || null }),
-      ...(parsed.data.phone !== undefined && { phone: parsed.data.phone || null }),
-      ...(parsed.data.location !== undefined && { location: parsed.data.location || null }),
-      ...(parsed.data.visaStatus !== undefined && { visaStatus: parsed.data.visaStatus || null }),
-      ...(parsed.data.rateExpectation !== undefined && { rateExpectation: parsed.data.rateExpectation || null }),
-      ...(parsed.data.availability !== undefined && { availability: parsed.data.availability || null }),
-      ...(parsed.data.employmentType !== undefined && { employmentType: parsed.data.employmentType || null }),
-      ...(parsed.data.status && { status: parsed.data.status }),
-      ...(parsed.data.resumeText !== undefined && { resumeText: parsed.data.resumeText || null }),
-    },
+    data: { ...parsed.data } as any,
   });
 
   return NextResponse.json({ data: updated });
 });
 
 export const DELETE = withRecruiter(async (req: AuthenticatedRequest, ctx?: any) => {
-  const id = ctx?.params?.id;
+  const params = await ctx?.params;
+  const id = params?.id;
+  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
 
   const candidate = await prisma.candidate.findUnique({ where: { id } });
   if (!candidate) return NextResponse.json({ error: "NOT_FOUND" }, { status: 404 });

@@ -4,16 +4,22 @@ import bcrypt from "bcryptjs";
 import { withAuth, AuthenticatedRequest } from "@/lib/middleware/withAuth";
 
 export const DELETE = withAuth(async (req: AuthenticatedRequest, ctx: any) => {
-  const id = ctx?.params?.id;
+  const params = await ctx?.params;
+  const id = params?.id;
+  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
   await prisma.user.update({
     where: { id },
-    data: { isActive: false, email: `deleted_${Date.now()}_${id}@deleted.com` },
+    data: { isActive: false },
   });
   return NextResponse.json({ success: true });
 });
 
 export const PATCH = withAuth(async (req: AuthenticatedRequest, ctx: any) => {
-  const id = ctx?.params?.id;
+  const params = await ctx?.params;
+  const id = params?.id;
+  if (!id) return NextResponse.json({ error: "Missing ID" }, { status: 400 });
+
   const body = await req.json();
 
   const data: any = {};

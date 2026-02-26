@@ -13,14 +13,14 @@ enum Role {
   SALES
 }
 
-enum CandidateStatus {
-  sourcing
-  screening
+enum SubmissionStatus {
   submitted
+  reviewing
   interviewing
   offered
   placed
   rejected
+  withdrawn
 }
 
 enum JobStatus {

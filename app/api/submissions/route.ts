@@ -9,6 +9,7 @@ const createSchema = z.object({
   jobId: z.string().min(1),
   notes: z.string().optional(),
   interviewDate: z.string().optional(),
+  status: z.enum(["submitted", "reviewing", "interviewing", "offered", "placed", "rejected", "withdrawn"]).default("submitted"),
 });
 
 export const GET = withRecruiter(async (req: AuthenticatedRequest) => {
@@ -64,12 +65,14 @@ export const POST = withRecruiter(async (req: AuthenticatedRequest) => {
       candidateId: parsed.data.candidateId,
       jobId: parsed.data.jobId,
       submittedById: req.user.userId,
+      status: parsed.data.status as any,
       notes: parsed.data.notes || null,
       interviewDate: parsed.data.interviewDate
         ? new Date(parsed.data.interviewDate)
         : null,
     },
   });
+
 
   await prisma.candidate.update({
     where: { id: parsed.data.candidateId },

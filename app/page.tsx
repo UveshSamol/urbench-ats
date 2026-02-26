@@ -440,6 +440,7 @@ export default function Page() {
     { id: "submissions", label: "📨 Submissions" },
     { id: "analytics", label: "📈 Analytics" },
     { id: "ai", label: "🤖 AI Tools" },
+{ id: "users", label: "👤 Manage Users" },
   ];
 
   return (
@@ -483,6 +484,25 @@ export default function Page() {
           addFields={null} />}
         {page === "analytics" && <Analytics token={token} />}
         {page === "ai" && <AITools token={token} notify={notify} />}
+{page === "users" && <DataPage title="Users" token={token} notify={notify} endpoint="/api/users" addTitle="User"
+  columns={[
+    { key: "name", label: "Name", isName: true },
+    { key: "email", label: "Email" },
+    { key: "role", label: "Role", render: (x: any) => <Badge>{x.role}</Badge> },
+    { key: "isActive", label: "Status", render: (x: any) => <Badge status={x.isActive ? "active" : "rejected"}>{x.isActive ? "Active" : "Inactive"}</Badge> },
+    { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) },
+  ]}
+  addFields={[
+    { key: "name", label: "Full Name" },
+    { key: "email", label: "Email", type: "email" },
+    { key: "password", label: "Password", placeholder: "Min 8 characters" },
+    { key: "role", label: "Role", type: "select", options: [
+      { value: "RECRUITER", label: "Recruiter" },
+      { value: "SALES", label: "Sales" },
+      { value: "ADMIN", label: "Admin" },
+    ]},
+  ]}
+/>}
       </div>
 
       {/* Toast */}

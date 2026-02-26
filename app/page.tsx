@@ -583,6 +583,109 @@ function JobsPage({ token, notify }: any) {
     </div>
   );
 }
+function SubmissionsPage({ token, notify }: any) {
+  const [list, setList] = useState<any[]>([]);
+  const [candidates, setCandidates] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [form, setForm] = useState<any>({});
+
+  function load() {
+    setLoading(true);
+    Promise.all([
+      api("/api/submissions", "GET", null, token),
+      api("/api/candidates", "GET", null, token),
+      api("/api/jobs", "GET", null, token),
+    ]).then(([s, c, j]) => {
+      setList(s.data || []);
+      setCandidates(c.data || []);
+      setJobs(j.data || []);
+    }).catch(e => notify(e.message, "error")).finally(() => setLoading(false));
+  }
+  useEffect(() => { load(); }, [token]);
+
+  const filtered = list.filter(x => !search || JSON.stringify(x).toLowerCase().includes(search.toLowerCase()));
+
+  function save() {
+    if (!form.candidateId) { notify("Please select a candidate", "error"); return; }
+    if (!form.jobId) { notify("Please select a job", "error"); return; }
+    setSaving(true);
+    api("/api/submissions", "POST", form, token)
+      .then(() => { notify("Submission added!", "success"); setModal(false); setForm({}); load(); })
+      .catch(e => notify(e.message, "error"))
+      .finally(() => setSaving(false));
+  }
+
+  return (
+    <div>
+      <div style={S.bar}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>Submissions</div>
+        <button type="button" onClick={() => setModal(true)} style={S.btn}>+ Add Submission</button>
+      </div>
+      <div style={S.page}>
+        <div style={S.card}>
+          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>All Submissions ({list.length})</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
+          </div>
+          {loading ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>Loading...</div> :
+            filtered.length === 0 ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>No submissions yet</div> : (
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={S.th}>Candidate</th>
+                    <th style={S.th}>Job</th>
+                    <th style={S.th}>Client</th>
+                    <th style={S.th}>Status</th>
+                    <th style={S.th}>Submitted</th>
+                    <th style={S.th}>Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((x: any, i: number) => (
+                    <tr key={i}>
+                      <td style={S.tdn}>{x.candidate?.name || "—"}</td>
+                      <td style={S.td}>{x.job?.title || "—"}</td>
+                      <td style={S.td}>{x.job?.client?.name || "—"}</td>
+                      <td style={S.td}><Badge status={x.status}>{x.status || "Submitted"}</Badge></td>
+                      <td style={S.td}>{fmt(x.submissionDate || x.createdAt)}</td>
+                      <td style={S.td}>{x.notes || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+        </div>
+      </div>
+
+      {modal && (
+        <Modal title="Add Submission" onClose={() => setModal(false)} onSave={save} saving={saving}>
+          <Field label="Candidate *">
+            <select style={S.inp} value={form.candidateId || ""} onChange={e => setForm({ ...form, candidateId: e.target.value })}>
+              <option value="">— Select Candidate —</option>
+              {candidates.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </Field>
+          <Field label="Job *">
+            <select style={S.inp} value={form.jobId || ""} onChange={e => setForm({ ...form, jobId: e.target.value })}>
+              <option value="">— Select Job —</option>
+              {jobs.map((j: any) => <option key={j.id} value={j.id}>{j.title} — {j.client?.name || "No client"}</option>)}
+            </select>
+          </Field>
+          <Field label="Notes">
+            <textarea style={{ ...S.inp, minHeight: 80, resize: "vertical" }} value={form.notes || ""} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any notes about this submission..." />
+          </Field>
+          <Field label="Interview Date">
+            <input style={S.inp} type="date" value={form.interviewDate || ""} onChange={e => setForm({ ...form, interviewDate: e.target.value })} />
+          </Field>
+        </Modal>
+      )}
+    </div>
+  );
+}
 function UsersPage({ token, notify }: any) {
   const [list, setList] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -779,9 +882,7 @@ export default function Page() {
         {page === "clients" && <DataPage title="Clients" token={token} notify={notify} endpoint="/api/clients" addTitle="Client"
           columns={[{ key: "name", label: "Company", isName: true }, { key: "industry", label: "Industry" }, { key: "contactName", label: "Contact" }, { key: "contactEmail", label: "Email" }, { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) }]}
           addFields={[{ key: "name", label: "Company Name" }, { key: "industry", label: "Industry", placeholder: "e.g. Manufacturing, Finance" }, { key: "contactName", label: "Contact Name" }, { key: "contactEmail", label: "Contact Email", type: "email" }]} />}
-        {page === "submissions" && <DataPage title="Submissions" token={token} notify={notify} endpoint="/api/submissions" addTitle=""
-          columns={[{ key: "candidate", label: "Candidate", isName: true, render: (x: any) => `${x.candidate?.firstName || x.candidateName || "—"} ${x.candidate?.lastName || ""}` }, { key: "job", label: "Job", render: (x: any) => x.job?.title || x.jobTitle || "—" }, { key: "status", label: "Status", render: (x: any) => <Badge status={x.status}>{x.status || "Submitted"}</Badge> }, { key: "createdAt", label: "Submitted", render: (x: any) => fmt(x.createdAt || x.submittedAt) }, { key: "billRate", label: "Bill Rate", render: (x: any) => x.billRate ? `$${x.billRate}/hr` : "—" }]}
-          addFields={null} />}
+        {page === "submissions" && <SubmissionsPage token={token} notify={notify} />}
         {page === "analytics" && <Analytics token={token} />}
         {page === "ai" && <AITools token={token} notify={notify} />}
         {page === "users" && <UsersPage token={token} notify={notify} />}

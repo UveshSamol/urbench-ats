@@ -433,8 +433,15 @@ function AITools({ token, notify }: any) {
 
             {tab === "match" ? (
               <>
-                <Field label="Candidate ID"><input style={S.inp} value={cid} onChange={e => setCid(e.target.value)} placeholder="Enter candidate ID" /></Field>
-                <Field label="Job ID"><input style={S.inp} value={jid} onChange={e => setJid(e.target.value)} placeholder="Enter job ID" /></Field>
+                <Field label="Candidate ID">
+  <input style={S.inp} value={cid} onChange={e => setCid(e.target.value)} placeholder="Go to Candidates page → click ID to copy" />
+</Field>
+<Field label="Job ID">
+  <input style={S.inp} value={jid} onChange={e => setJid(e.target.value)} placeholder="Go to Jobs page → click ID to copy" />
+</Field>
+<div style={{ fontSize: 11, color: MUTED, padding: "6px 10px", background: INPUT, borderRadius: 6, border: `1px solid ${BORDER}` }}>
+  💡 Go to <span style={{ color: BRAND, cursor: "pointer" }} onClick={() => {}}>Candidates</span> or <span style={{ color: BRAND }}>Jobs</span> page — click any row ID to copy it, then paste here.
+</div>
               </>
             ) : (
               <>
@@ -737,7 +744,23 @@ function JobsPage({ token, notify }: any) {
     <td style={S.td}>{x.paymentType || "Hourly"}</td>
     <td style={S.td}><Badge status={x.status}>{x.status || "Open"}</Badge></td>
     <td style={S.td}>
-      <button type="button" onClick={() => { setForm({ ...x, clientId: x.client?.id }); setEditId(x.id); setModal(true); }}
+      <button type="button" onClick={() => {
+  setForm({
+    clientId: x.client?.id || x.clientId,
+    title: x.title,
+    description: x.description || "",
+    location: x.location || "",
+    type: x.type || "Contract",
+    rateNumeric: x.rateNumeric || "",
+    currency: x.currency || "USD",
+    paymentType: x.paymentType || "Hourly",
+    duration: x.duration || "",
+    remote: x.remote || "",
+    status: x.status || "Open",
+  });
+  setEditId(x.id);
+  setModal(true);
+}}
         style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>
         ✏️ Edit
       </button>

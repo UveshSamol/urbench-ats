@@ -508,6 +508,133 @@ function AITools({ token, notify }: any) {
     </div>
   );
 }
+function CandidatesPage({ token, notify }: any) {
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [modal, setModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<any>({});
+  const [editId, setEditId] = useState<string | null>(null);
+
+  function load() {
+    setLoading(true);
+    api("/api/candidates", "GET", null, token)
+      .then(d => setList(d.data || []))
+      .catch(e => notify(e.message, "error"))
+      .finally(() => setLoading(false));
+  }
+  useEffect(() => { load(); }, [token]);
+
+  const filtered = list.filter(x => !search || JSON.stringify(x).toLowerCase().includes(search.toLowerCase()));
+
+  function save() {
+    if (!form.name) { notify("Name is required", "error"); return; }
+    setSaving(true);
+    const method = editId ? "PATCH" : "POST";
+    const endpoint = editId ? `/api/candidates/${editId}` : "/api/candidates";
+    api(endpoint, method, form, token)
+      .then(() => { notify(editId ? "Candidate updated!" : "Candidate added!", "success"); setModal(false); setForm({}); setEditId(null); load(); })
+      .catch(e => notify(e.message, "error"))
+      .finally(() => setSaving(false));
+  }
+
+  function deleteCandidate(id: string, name: string) {
+    if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
+    api(`/api/candidates/${id}`, "DELETE", null, token)
+      .then(() => { notify(`${name} deleted`, "success"); load(); })
+      .catch(e => notify(e.message, "error"));
+  }
+
+  return (
+    <div>
+      <div style={S.bar}>
+        <div style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>Candidates</div>
+        <button type="button" onClick={() => { setForm({}); setEditId(null); setModal(true); }} style={S.btn}>+ Add Candidate</button>
+      </div>
+      <div style={S.page}>
+        <div style={S.card}>
+          <div style={{ padding: "14px 18px", borderBottom: `1px solid ${BORDER}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>All Candidates ({list.length})</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
+          </div>
+          {loading ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>Loading...</div> :
+            filtered.length === 0 ? <div style={{ padding: 40, textAlign: "center", color: MUTED }}>No candidates found</div> : (
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={S.th}>Name</th>
+                    <th style={S.th}>Email</th>
+                    <th style={S.th}>Location</th>
+                    <th style={S.th}>Visa</th>
+                    <th style={S.th}>Rate</th>
+                    <th style={S.th}>Availability</th>
+                    <th style={S.th}>Status</th>
+                    <th style={S.th}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((x: any, i: number) => (
+                    <tr key={i}>
+                      <td style={S.tdn}>{x.name}</td>
+                      <td style={S.td}>{x.email || "—"}</td>
+                      <td style={S.td}>{x.location || "—"}</td>
+                      <td style={S.td}>{x.visaStatus || "—"}</td>
+                      <td style={S.td}>{x.rateExpectation || "—"}</td>
+                      <td style={S.td}>{x.availability || "—"}</td>
+                      <td style={S.td}><Badge status={x.status}>{x.status || "sourcing"}</Badge></td>
+                      <td style={S.td}>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button type="button" onClick={() => { setForm({ ...x }); setEditId(x.id); setModal(true); }}
+                            style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>
+                            ✏️ Edit
+                          </button>
+                          <button type="button" onClick={() => deleteCandidate(x.id, x.name)}
+                            style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: "1px solid #EF444430", background: "transparent", color: "#EF4444", cursor: "pointer", fontFamily: FONT }}>
+                            🗑 Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+        </div>
+      </div>
+
+      {modal && (
+        <Modal title={editId ? "Edit Candidate" : "Add Candidate"} onClose={() => { setModal(false); setForm({}); setEditId(null); }} onSave={save} saving={saving}>
+          <Field label="Full Name *"><input style={S.inp} value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. John Smith" /></Field>
+          <Field label="Email"><input style={S.inp} type="email" value={form.email || ""} onChange={e => setForm({ ...form, email: e.target.value })} /></Field>
+          <Field label="Phone"><input style={S.inp} value={form.phone || ""} onChange={e => setForm({ ...form, phone: e.target.value })} /></Field>
+          <Field label="Location"><input style={S.inp} value={form.location || ""} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="e.g. Dallas, TX" /></Field>
+          <Field label="Visa Status"><input style={S.inp} value={form.visaStatus || ""} onChange={e => setForm({ ...form, visaStatus: e.target.value })} placeholder="e.g. H1B, GC, USC" /></Field>
+          <Field label="Rate Expectation"><input style={S.inp} value={form.rateExpectation || ""} onChange={e => setForm({ ...form, rateExpectation: e.target.value })} placeholder="e.g. $85/hr" /></Field>
+          <Field label="Availability"><input style={S.inp} value={form.availability || ""} onChange={e => setForm({ ...form, availability: e.target.value })} placeholder="e.g. Immediate" /></Field>
+          <Field label="Employment Type">
+            <select style={S.inp} value={form.employmentType || "CONTRACT"} onChange={e => setForm({ ...form, employmentType: e.target.value })}>
+              <option value="CONTRACT">Contract</option>
+              <option value="FULL_TIME">Full Time</option>
+              <option value="CONTRACT_TO_HIRE">Contract to Hire</option>
+            </select>
+          </Field>
+          <Field label="Status">
+            <select style={S.inp} value={form.status || "sourcing"} onChange={e => setForm({ ...form, status: e.target.value })}>
+              <option value="sourcing">Sourcing</option>
+              <option value="screening">Screening</option>
+              <option value="submitted">Submitted</option>
+              <option value="interviewing">Interviewing</option>
+              <option value="offered">Offered</option>
+              <option value="placed">Placed</option>
+              <option value="rejected">Rejected</option>
+            </select>
+          </Field>
+        </Modal>
+      )}
+    </div>
+  );
+}
 function JobsPage({ token, notify }: any) {
   const [list, setList] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
@@ -516,6 +643,7 @@ function JobsPage({ token, notify }: any) {
   const [modal, setModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<any>({ type: "Contract" });
+  const [editId, setEditId] = useState<string | null>(null);
 
   function load() {
     setLoading(true);
@@ -548,8 +676,10 @@ function JobsPage({ token, notify }: any) {
       remote: form.remote || "",
       duration: form.duration || "",
     };
-    api("/api/jobs", "POST", body, token)
-      .then(() => { notify("Job added!", "success"); setModal(false); setForm({ type: "Contract" }); load(); })
+    const method = editId ? "PATCH" : "POST";
+    const endpoint = editId ? `/api/jobs/${editId}` : "/api/jobs";
+    api(endpoint, method, body, token)
+      .then(() => { notify(editId ? "Job updated!" : "Job added!", "success"); setModal(false); setForm({ type: "Contract" }); setEditId(null); load(); })
       .catch(e => notify(e.message, "error"))
       .finally(() => setSaving(false));
   }
@@ -583,17 +713,23 @@ function JobsPage({ token, notify }: any) {
                 </thead>
                 <tbody>
                   {filtered.map((x: any, i: number) => (
-                    <tr key={i}>
-                      <td style={S.tdn}>{x.title}</td>
-                      <td style={S.td}>{x.client?.name || "—"}</td>
-                      <td style={S.td}>{x.location || "—"}</td>
-                      <td style={S.td}><Badge>{x.type || "Contract"}</Badge></td>
-                      <td style={S.td}>{x.rate || (x.rateNumeric ? `${x.rateNumeric}` : "—")}</td>
-                      <td style={S.td}>{x.currency || "USD"}</td>
-                      <td style={S.td}>{x.paymentType || "Hourly"}</td>
-                      <td style={S.td}><Badge status={x.status}>{x.status || "Open"}</Badge></td>
-                    </tr>
-                  ))}
+  <tr key={i}>
+    <td style={S.tdn}>{x.title}</td>
+    <td style={S.td}>{x.client?.name || "—"}</td>
+    <td style={S.td}>{x.location || "—"}</td>
+    <td style={S.td}><Badge>{x.type || "Contract"}</Badge></td>
+    <td style={S.td}>{x.rate || (x.rateNumeric ? `${x.rateNumeric}` : "—")}</td>
+    <td style={S.td}>{x.currency || "USD"}</td>
+    <td style={S.td}>{x.paymentType || "Hourly"}</td>
+    <td style={S.td}><Badge status={x.status}>{x.status || "Open"}</Badge></td>
+    <td style={S.td}>
+      <button type="button" onClick={() => { setForm({ ...x, clientId: x.client?.id }); setEditId(x.id); setModal(true); }}
+        style={{ padding: "4px 10px", fontSize: 11, borderRadius: 6, border: `1px solid ${BORDER}`, background: "transparent", color: BRAND, cursor: "pointer", fontFamily: FONT }}>
+        ✏️ Edit
+      </button>
+    </td>
+  </tr>
+))}
                 </tbody>
               </table>
             )}
@@ -601,7 +737,7 @@ function JobsPage({ token, notify }: any) {
       </div>
 
       {modal && (
-        <Modal title="Add New Job" onClose={() => setModal(false)} onSave={save} saving={saving}>
+        <Modal title={editId ? "Edit Job" : "Add New Job"} onClose={() => { setModal(false); setEditId(null); setForm({ type: "Contract" }); }} onSave={save} saving={saving}>
           <Field label="Client *">
             <select style={S.inp} value={form.clientId || ""} onChange={e => setForm({ ...form, clientId: e.target.value })}>
               <option value="">— Select Client —</option>
@@ -944,22 +1080,7 @@ export default function Page() {
 
       <div style={{ marginLeft: 230, flex: 1, minHeight: "100vh" }}>
         {page === "dashboard" && <Dashboard token={token} goTo={setPage} notify={notify} />}
-        {page === "candidates" && <DataPage title="Candidates" token={token} notify={notify} endpoint="/api/candidates" addTitle="Candidate"
-          columns={[{ key: "name", label: "Name", isName: true, render: (x: any) => x.name || "—" }, { key: "email", label: "Email" }, { key: "title", label: "Title / Skills", render: (x: any) => x.title || x.skills || "—" }, { key: "status", label: "Status", render: (x: any) => <Badge status={x.status}>{x.status || "Active"}</Badge> }, { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) }]}
-          addFields={[
-  { key: "name", label: "Full Name", placeholder: "e.g. John Smith" },
-  { key: "email", label: "Email", type: "email" },
-  { key: "phone", label: "Phone" },
-  { key: "location", label: "Location", placeholder: "e.g. Dallas, TX" },
-  { key: "visaStatus", label: "Visa Status", placeholder: "e.g. H1B, GC, USC" },
-  { key: "rateExpectation", label: "Rate Expectation", placeholder: "e.g. $85/hr" },
-  { key: "availability", label: "Availability", placeholder: "e.g. Immediate, 2 weeks" },
-  { key: "employmentType", label: "Employment Type", type: "select", options: [
-    { value: "CONTRACT", label: "Contract" },
-    { value: "FULL_TIME", label: "Full Time" },
-    { value: "CONTRACT_TO_HIRE", label: "Contract to Hire" },
-  ]},
-]} />}
+        {page === "candidates" && <CandidatesPage token={token} notify={notify} />}
         {page === "jobs" && <JobsPage token={token} notify={notify} />}
         {page === "clients" && <DataPage title="Clients" token={token} notify={notify} endpoint="/api/clients" addTitle="Client"
           columns={[{ key: "name", label: "Company", isName: true }, { key: "industry", label: "Industry" }, { key: "contactName", label: "Contact" }, { key: "contactEmail", label: "Email" }, { key: "createdAt", label: "Added", render: (x: any) => fmt(x.createdAt) }]}

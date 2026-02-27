@@ -41,23 +41,23 @@ function GlobalStyles() {
   );
 }
 
-const BRAND    = process.env.NEXT_PUBLIC_BRAND_COLOR    || "#6C63FF";
-const ACCENT   = process.env.NEXT_PUBLIC_ACCENT_COLOR   || "#FF7A59";
-const BG       = process.env.NEXT_PUBLIC_BG_COLOR       || "#F6F7FB";
-const SIDEBAR  = process.env.NEXT_PUBLIC_SIDEBAR_COLOR  || "#FFFFFF";
-const CARD     = process.env.NEXT_PUBLIC_CARD_COLOR     || "#FFFFFF";
-const INPUT    = process.env.NEXT_PUBLIC_INPUT_COLOR    || "#F1F3FA";
-const BORDER   = process.env.NEXT_PUBLIC_BORDER_COLOR   || "#E6E8F2";
-const TEXT     = process.env.NEXT_PUBLIC_TEXT_COLOR     || "#1E1F3A";
-const MUTED    = process.env.NEXT_PUBLIC_TEXT_MUTED     || "#7C82A0";
-const FONT     = process.env.NEXT_PUBLIC_FONT           || "system-ui,-apple-system,sans-serif";
-const RADIUS   = process.env.NEXT_PUBLIC_BORDER_RADIUS  || "14px";
-const COMPANY  = process.env.NEXT_PUBLIC_COMPANY_NAME   || "UrBench";
-const TAGLINE  = process.env.NEXT_PUBLIC_COMPANY_TAGLINE|| "Building Trust, Exceeding Expectations";
+const BRAND    = "#6C63FF";  // Purple - keep
+const ACCENT   = "#FF7A59";  // Orange - keep
+const BG       = "#F9FAFB";  // Light background
+const SIDEBAR  = "#FFFFFF";  // White sidebar
+const CARD     = "#FFFFFF";  // White cards
+const INPUT    = "#FFFFFF";  // White input fields
+const BORDER   = "#E5E7EB";  // Light gray borders
+const TEXT     = "#111827";  // Dark text for readability
+const MUTED    = "#6B7280";  // Medium gray for muted text
+const FONT     = "system-ui,-apple-system,sans-serif";
+const RADIUS   = "14px";
+const COMPANY  = "UrBench";
+const TAGLINE  = "Building Trust, Exceeding Expectations";
 
 const G1 = `linear-gradient(135deg,#6C63FF,#8F88FF,#FF7A59)`;
-const GLASS        = `rgba(255,255,255,0.9)`;   // Light glass overlay
-const GLASS_BORDER = `rgba(0,0,0,0.1)`;         // Subtle dark border
+const GLASS        = `rgba(255,255,255,0.95)`;  // Almost white glass
+const GLASS_BORDER = `rgba(0,0,0,0.08)`;        // Very subtle dark border
 const GLASS_BLUR   = "blur(20px)";
 
 const SUBMISSION_STATUSES = [

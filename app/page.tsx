@@ -41,24 +41,24 @@ function GlobalStyles() {
   );
 }
 
-const BRAND    = "#6C63FF";  // Purple - keep
-const ACCENT   = "#FF7A59";  // Orange - keep
-const BG       = "#F9FAFB";  // Light background
-const SIDEBAR  = "#FFFFFF";  // White sidebar
-const CARD     = "#FFFFFF";  // White cards
-const INPUT    = "#FFFFFF";  // White input fields
-const BORDER   = "#E5E7EB";  // Light gray borders
-const TEXT     = "#111827";  // Dark text for readability
-const MUTED    = "#6B7280";  // Medium gray for muted text
+// ── LIGHT THEME COLORS ─────────────────────────────────────────────────────
+const BRAND    = "#6366F1";  // Indigo
+const ACCENT   = "#F59E0B";  // Amber
+const SUCCESS  = "#10B981";  // Green
+const DANGER   = "#EF4444";  // Red
+const BG       = "#F9FAFB";  // Very light gray
+const SIDEBAR  = "#FFFFFF";  // White
+const CARD     = "#FFFFFF";  // White
+const INPUT    = "#FFFFFF";  // White
+const BORDER   = "#E5E7EB";  // Light gray
+const TEXT     = "#111827";  // Almost black
+const MUTED    = "#6B7280";  // Medium gray
 const FONT     = "system-ui,-apple-system,sans-serif";
-const RADIUS   = "14px";
+const RADIUS   = "12px";
 const COMPANY  = "UrBench";
 const TAGLINE  = "Building Trust, Exceeding Expectations";
 
-const G1 = `linear-gradient(135deg,#6C63FF,#8F88FF,#FF7A59)`;
-const GLASS        = `rgba(255,255,255,0.95)`;  // Almost white glass
-const GLASS_BORDER = `rgba(0,0,0,0.08)`;        // Very subtle dark border
-const GLASS_BLUR   = "blur(20px)";
+const G1 = `linear-gradient(135deg, ${BRAND}, #8B5CF6)`;
 
 const SUBMISSION_STATUSES = [
   { value: "pending_review",      label: "Pending Review" },
@@ -95,42 +95,116 @@ const startOfWeek = () => { const d = new Date(); d.setDate(d.getDate()-d.getDay
 const startOfMonth = () => { const d = new Date(); d.setDate(1); d.setHours(0,0,0,0); return d; };
 
 const bc = (s: string) => {
-  if (!s) return "#5A6080";
+  if (!s) return MUTED;
   const l = s.toLowerCase();
-  if (["active","open","placed","completed","approved"].some(x=>l.includes(x))) return "#10B981";
-  if (["pending","submitted","interview","review","vendor","client"].some(x=>l.includes(x))) return "#F59E0B";
-  if (["rejected","closed","cancel","withdrawn"].some(x=>l.includes(x))) return "#EF4444";
+  if (["active","open","placed","completed","approved"].some(x=>l.includes(x))) return SUCCESS;
+  if (["pending","submitted","interview","review","vendor","client"].some(x=>l.includes(x))) return ACCENT;
+  if (["rejected","closed","cancel","withdrawn"].some(x=>l.includes(x))) return DANGER;
   return BRAND;
 };
 
 // ── Shared Styles ──────────────────────────────────────────────────────────
 const S = {
-  inp: { width:"100%", padding:"10px 14px", background:`rgba(7,9,26,0.85)`, border:`1px solid ${GLASS_BORDER}`, borderRadius:10, color:TEXT, fontSize:13, outline:"none", fontFamily:FONT, backdropFilter:"blur(8px)", transition:"border-color 0.2s,box-shadow 0.2s" } as React.CSSProperties,
-  th: { padding:"11px 16px", textAlign:"left" as const, fontSize:10, fontWeight:700, color:MUTED, textTransform:"uppercase" as const, letterSpacing:"0.9px", borderBottom:`1px solid ${GLASS_BORDER}`, background:`rgba(6,7,20,0.7)`, backdropFilter:"blur(10px)" },
-  td: { padding:"13px 16px", fontSize:13, borderBottom:`1px solid rgba(255,255,255,0.035)`, color:MUTED },
-  tdn: { padding:"13px 16px", fontSize:13, borderBottom:`1px solid rgba(255,255,255,0.035)`, color:TEXT, fontWeight:500 },
-  btn: { display:"inline-flex", alignItems:"center", gap:6, padding:"9px 18px", background:G1, border:"none", borderRadius:10, color:"#fff", fontSize:13, fontWeight:600, cursor:"pointer", boxShadow:`0 4px 20px rgba(0,212,255,0.25)`, transition:"opacity 0.2s,transform 0.15s" } as React.CSSProperties,
-  card: { background:GLASS, backdropFilter:GLASS_BLUR, border:`1px solid ${GLASS_BORDER}`, borderRadius:RADIUS, overflow:"hidden" as const, boxShadow:"0 8px 32px rgba(0,0,0,0.45)" },
+  inp: { 
+    width:"100%", 
+    padding:"10px 14px", 
+    background: INPUT, 
+    border:`1px solid ${BORDER}`, 
+    borderRadius: 8, 
+    color: TEXT, 
+    fontSize: 14, 
+    outline:"none", 
+    fontFamily: FONT,
+    transition:"border-color 0.2s, box-shadow 0.2s",
+  } as React.CSSProperties,
+  th: { 
+    padding:"12px 16px", 
+    textAlign:"left" as const, 
+    fontSize: 11, 
+    fontWeight: 600, 
+    color: MUTED, 
+    textTransform:"uppercase" as const, 
+    letterSpacing:"0.5px", 
+    borderBottom:`2px solid ${BORDER}`, 
+    background: "#F9FAFB",
+  },
+  td: { 
+    padding:"14px 16px", 
+    fontSize: 14, 
+    borderBottom:`1px solid ${BORDER}`, 
+    color: MUTED 
+  },
+  tdn: { 
+    padding:"14px 16px", 
+    fontSize: 14, 
+    borderBottom:`1px solid ${BORDER}`, 
+    color: TEXT, 
+    fontWeight: 500 
+  },
+  btn: { 
+    display:"inline-flex", 
+    alignItems:"center", 
+    gap: 6, 
+    padding:"10px 18px", 
+    background: BRAND, 
+    border:"none", 
+    borderRadius: 8, 
+    color:"#fff", 
+    fontSize: 14, 
+    fontWeight: 600, 
+    cursor:"pointer", 
+    boxShadow:"0 1px 3px rgba(0,0,0,0.1)", 
+    transition:"all 0.2s",
+  } as React.CSSProperties,
+  card: { 
+    background: CARD, 
+    border:`1px solid ${BORDER}`, 
+    borderRadius: RADIUS, 
+    overflow:"hidden" as const, 
+    boxShadow:"0 1px 3px rgba(0,0,0,0.05)" 
+  },
   page: { padding:"24px 28px" } as React.CSSProperties,
-  bar: { borderBottom:`1px solid ${GLASS_BORDER}`, background:`rgba(6,7,26,0.85)`, backdropFilter:"blur(20px)", display:"flex", alignItems:"center", justifyContent:"space-between" } as React.CSSProperties,
+  bar: { 
+    borderBottom:`1px solid ${BORDER}`, 
+    background: CARD, 
+    display:"flex", 
+    alignItems:"center", 
+    justifyContent:"space-between" 
+  } as React.CSSProperties,
 };
 
 // ── Badge ──────────────────────────────────────────────────────────────────
 function Badge({ children, status }: { children: string; status?: string }) {
   const c = bc(status || children);
   const label = SUBMISSION_STATUSES.find(s => s.value === children)?.label || children;
-  return <span style={{ display:"inline-flex", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:600, background:c+"18", color:c, border:`1px solid ${c}30` }}>{label}</span>;
+  return (
+    <span style={{ 
+      display:"inline-flex", 
+      padding:"4px 10px", 
+      borderRadius: 6, 
+      fontSize: 12, 
+      fontWeight: 600, 
+      background: `${c}15`, 
+      color: c, 
+      border:`1px solid ${c}40` 
+    }}>
+      {label}
+    </span>
+  );
 }
 
 // ── Stat Card ──────────────────────────────────────────────────────────────
 function Stat({ label, value, color, sub }: { label:string; value:string|number; color:string; sub?:string }) {
   return (
-    <div style={{ ...S.card, padding:20, position:"relative", background:`linear-gradient(135deg,rgba(10,12,30,0.85),rgba(8,10,24,0.9))` }}>
-      <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:G1, opacity:0.5, borderRadius:`${RADIUS} ${RADIUS} 0 0` }} />
-      <div style={{ position:"absolute", top:-20, right:-20, width:80, height:80, borderRadius:"50%", background:color, opacity:0.07, filter:"blur(25px)" }} />
-      <div style={{ fontSize:11, color:MUTED, marginBottom:8, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.7px" }}>{label}</div>
-      <div style={{ fontSize:28, fontWeight:800, letterSpacing:"-1px", color }}>{value}</div>
-      {sub && <div style={{ fontSize:11, color:MUTED, marginTop:5 }}>{sub}</div>}
+    <div style={{ 
+      ...S.card, 
+      padding: 20, 
+      borderLeft: `4px solid ${color}`,
+      position:"relative"
+    }}>
+      <div style={{ fontSize: 12, color: MUTED, marginBottom: 8, fontWeight: 600, textTransform:"uppercase", letterSpacing:"0.5px" }}>{label}</div>
+      <div style={{ fontSize: 32, fontWeight: 700, letterSpacing:"-1px", color }}>{value}</div>
+      {sub && <div style={{ fontSize: 12, color: MUTED, marginTop: 6 }}>{sub}</div>}
     </div>
   );
 }
@@ -138,17 +212,72 @@ function Stat({ label, value, color, sub }: { label:string; value:string|number;
 // ── Modal ──────────────────────────────────────────────────────────────────
 function Modal({ title, onClose, children, onSave, saving }: any) {
   return (
-    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:100, backdropFilter:"blur(6px)", padding:"10px" }}>
-      <div className="modal-inner" style={{ background:"rgba(10,12,30,0.97)", backdropFilter:"blur(30px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:18, width:500, maxWidth:"100%", maxHeight:"90vh", overflowY:"auto", boxShadow:`0 24px 80px rgba(0,0,0,0.7),0 0 0 1px rgba(0,212,255,0.06)` }}>
-        <div style={{ padding:"18px 22px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between", background:"rgba(0,212,255,0.02)" }}>
-          <div style={{ fontSize:15, fontWeight:700, color:TEXT }}>{title}</div>
-          <button type="button" onClick={onClose} style={{ background:"rgba(255,255,255,0.06)", border:"none", color:MUTED, cursor:"pointer", fontSize:14, width:28, height:28, borderRadius:8, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:FONT }}>✕</button>
+    <div style={{ 
+      position:"fixed", 
+      inset:0, 
+      background:"rgba(0,0,0,0.4)", 
+      display:"flex", 
+      alignItems:"center", 
+      justifyContent:"center", 
+      zIndex:100, 
+      padding:"10px" 
+    }}>
+      <div className="modal-inner" style={{ 
+        background: CARD, 
+        border:`1px solid ${BORDER}`, 
+        borderRadius: 16, 
+        width: 500, 
+        maxWidth:"100%", 
+        maxHeight:"90vh", 
+        overflowY:"auto", 
+        boxShadow:"0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" 
+      }}>
+        <div style={{ 
+          padding:"18px 22px", 
+          borderBottom:`1px solid ${BORDER}`, 
+          display:"flex", 
+          alignItems:"center", 
+          justifyContent:"space-between" 
+        }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>{title}</div>
+          <button type="button" onClick={onClose} style={{ 
+            background:"transparent", 
+            border:"none", 
+            color: MUTED, 
+            cursor:"pointer", 
+            fontSize: 24, 
+            lineHeight: 1,
+            padding: 4,
+            fontFamily: FONT 
+          }}>×</button>
         </div>
-        <div style={{ padding:22 }}>{children}</div>
+        <div style={{ padding: 22 }}>{children}</div>
         {onSave && (
-          <div style={{ padding:"14px 22px", borderTop:`1px solid ${GLASS_BORDER}`, display:"flex", justifyContent:"flex-end", gap:8 }}>
-            <button type="button" onClick={onClose} style={{ padding:"9px 18px", background:"rgba(255,255,255,0.05)", border:`1px solid ${GLASS_BORDER}`, borderRadius:10, color:MUTED, fontSize:13, cursor:"pointer", fontFamily:FONT }}>Cancel</button>
-            <button type="button" onClick={onSave} disabled={saving} style={{ ...S.btn, opacity:saving?0.6:1 }}>{saving?"Saving...":"Save"}</button>
+          <div style={{ 
+            padding:"14px 22px", 
+            borderTop:`1px solid ${BORDER}`, 
+            display:"flex", 
+            justifyContent:"flex-end", 
+            gap: 8,
+            background: "#F9FAFB"
+          }}>
+            <button type="button" onClick={onClose} style={{ 
+              padding:"10px 18px", 
+              background: CARD, 
+              border:`1px solid ${BORDER}`, 
+              borderRadius: 8, 
+              color: TEXT, 
+              fontSize: 14, 
+              cursor:"pointer", 
+              fontFamily: FONT,
+              fontWeight: 500
+            }}>Cancel</button>
+            <button type="button" onClick={onSave} disabled={saving} style={{ 
+              ...S.btn, 
+              opacity: saving ? 0.6 : 1 
+            }}>
+              {saving ? "Saving..." : "Save"}
+            </button>
           </div>
         )}
       </div>
@@ -157,7 +286,18 @@ function Modal({ title, onClose, children, onSave, saving }: any) {
 }
 
 function Field({ label, children }: any) {
-  return <div style={{ marginBottom:16 }}><label style={{ display:"block", fontSize:12, fontWeight:600, color:MUTED, marginBottom:6, letterSpacing:"0.4px" }}>{label}</label>{children}</div>;
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <label style={{ 
+        display:"block", 
+        fontSize: 13, 
+        fontWeight: 600, 
+        color: TEXT, 
+        marginBottom: 6 
+      }}>{label}</label>
+      {children}
+    </div>
+  );
 }
 
 // ── Live Clock ─────────────────────────────────────────────────────────────
@@ -168,8 +308,8 @@ function LiveClock() {
   const dateStr = time.toLocaleDateString("en-US", { weekday:"short", month:"short", day:"numeric" });
   return (
     <div style={{ textAlign:"right" }}>
-      <div style={{ fontSize:18, fontWeight:700, color:TEXT, fontVariantNumeric:"tabular-nums", letterSpacing:"0.5px" }}>{timeStr}</div>
-      <div style={{ fontSize:11, color:MUTED }}>{dateStr}</div>
+      <div style={{ fontSize: 16, fontWeight: 600, color: TEXT, fontVariantNumeric:"tabular-nums" }}>{timeStr}</div>
+      <div style={{ fontSize: 11, color: MUTED }}>{dateStr}</div>
     </div>
   );
 }
@@ -188,25 +328,89 @@ function NotificationBell({ token, notify }: any) {
   return (
     <div style={{ position:"relative" }}>
       <button type="button" onClick={() => { setOpen(!open); if(!open) load(); }}
-        style={{ position:"relative", background:"rgba(255,255,255,0.05)", border:`1px solid ${GLASS_BORDER}`, borderRadius:10, padding:"7px 11px", cursor:"pointer", color:TEXT, fontSize:15, backdropFilter:"blur(8px)", transition:"background 0.2s" }}>
+        style={{ 
+          position:"relative", 
+          background: CARD, 
+          border:`1px solid ${BORDER}`, 
+          borderRadius: 8, 
+          padding:"8px 12px", 
+          cursor:"pointer", 
+          color: TEXT, 
+          fontSize: 16,
+          transition:"background 0.2s"
+        }}>
         🔔
-        {unread>0 && <span style={{ position:"absolute", top:-5, right:-5, background:"#EF4444", color:"#fff", fontSize:9, fontWeight:800, borderRadius:"50%", width:17, height:17, display:"flex", alignItems:"center", justifyContent:"center", border:`2px solid ${BG}` }}>{unread>9?"9+":unread}</span>}
+        {unread>0 && (
+          <span style={{ 
+            position:"absolute", 
+            top: -4, 
+            right: -4, 
+            background: DANGER, 
+            color:"#fff", 
+            fontSize: 10, 
+            fontWeight: 700, 
+            borderRadius:"50%", 
+            width: 18, 
+            height: 18, 
+            display:"flex", 
+            alignItems:"center", 
+            justifyContent:"center", 
+            border:`2px solid ${CARD}` 
+          }}>
+            {unread > 9 ? "9+" : unread}
+          </span>
+        )}
       </button>
       {open && (
-        <div style={{ position:"absolute", top:44, right:0, width:340, background:"rgba(10,12,30,0.97)", backdropFilter:"blur(30px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:14, boxShadow:"0 16px 50px rgba(0,0,0,0.6)", zIndex:200 }}>
-          <div style={{ padding:"12px 16px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <span style={{ fontSize:13, fontWeight:700, color:TEXT }}>Notifications {unread>0&&<span style={{ color:BRAND }}>({unread})</span>}</span>
-            {unread>0 && <button type="button" onClick={markAllRead} style={{ fontSize:11, color:BRAND, background:"none", border:"none", cursor:"pointer", fontFamily:FONT }}>Mark all read</button>}
+        <div style={{ 
+          position:"absolute", 
+          top: 48, 
+          right: 0, 
+          width: 340, 
+          background: CARD, 
+          border:`1px solid ${BORDER}`, 
+          borderRadius: 12, 
+          boxShadow:"0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)", 
+          zIndex: 200 
+        }}>
+          <div style={{ 
+            padding:"12px 16px", 
+            borderBottom:`1px solid ${BORDER}`, 
+            display:"flex", 
+            alignItems:"center", 
+            justifyContent:"space-between" 
+          }}>
+            <span style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>
+              Notifications {unread > 0 && <span style={{ color: BRAND }}>({unread})</span>}
+            </span>
+            {unread > 0 && (
+              <button type="button" onClick={markAllRead} style={{ 
+                fontSize: 12, 
+                color: BRAND, 
+                background:"none", 
+                border:"none", 
+                cursor:"pointer", 
+                fontFamily: FONT,
+                fontWeight: 500
+              }}>Mark all read</button>
+            )}
           </div>
-          <div style={{ maxHeight:360, overflowY:"auto" }}>
-            {notifs.length===0 ? <div style={{ padding:24, textAlign:"center", color:MUTED, fontSize:13 }}>No notifications</div> :
+          <div style={{ maxHeight: 360, overflowY:"auto" }}>
+            {notifs.length === 0 ? (
+              <div style={{ padding: 24, textAlign:"center", color: MUTED, fontSize: 13 }}>No notifications</div>
+            ) : (
               notifs.map((n:any,i:number)=>(
-                <div key={i} style={{ padding:"12px 16px", borderBottom:`1px solid rgba(255,255,255,0.04)`, background:n.isRead?"transparent":"rgba(0,212,255,0.03)" }}>
-                  <div style={{ fontSize:12, fontWeight:600, color:n.isRead?MUTED:TEXT, marginBottom:3 }}>{n.title}</div>
-                  <div style={{ fontSize:11, color:MUTED }}>{n.message}</div>
-                  <div style={{ fontSize:10, color:MUTED, marginTop:4 }}>{fmt(n.createdAt)}</div>
+                <div key={i} style={{ 
+                  padding:"12px 16px", 
+                  borderBottom:`1px solid ${BORDER}`, 
+                  background: n.isRead ? "transparent" : `${BRAND}08`
+                }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: n.isRead ? MUTED : TEXT, marginBottom: 3 }}>{n.title}</div>
+                  <div style={{ fontSize: 12, color: MUTED }}>{n.message}</div>
+                  <div style={{ fontSize: 11, color: MUTED, marginTop: 4 }}>{fmt(n.createdAt)}</div>
                 </div>
-              ))}
+              ))
+            )}
           </div>
         </div>
       )}
@@ -218,12 +422,20 @@ function NotificationBell({ token, notify }: any) {
 function SimpleBar({ data, labelKey, valueKey }: { data:any[]; labelKey:string; valueKey:string }) {
   const max = Math.max(...data.map(d=>d[valueKey]||0),1);
   return (
-    <div style={{ display:"flex", alignItems:"flex-end", gap:8, height:140, padding:"10px 0" }}>
+    <div style={{ display:"flex", alignItems:"flex-end", gap: 8, height: 140, padding:"10px 0" }}>
       {data.map((d,i)=>(
-        <div key={i} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:5 }}>
-          <div style={{ fontSize:10, color:MUTED }}>${(d[valueKey]/1000).toFixed(0)}k</div>
-          <div style={{ width:"100%", maxWidth:36, height:`${(d[valueKey]/max)*110}px`, background:G1, borderRadius:"4px 4px 0 0", minHeight:4, boxShadow:`0 0 12px rgba(0,212,255,0.3)` }} />
-          <div style={{ fontSize:10, color:MUTED }}>{d[labelKey]}</div>
+        <div key={i} style={{ flex: 1, display:"flex", flexDirection:"column", alignItems:"center", gap: 5 }}>
+          <div style={{ fontSize: 10, color: MUTED, fontWeight: 600 }}>${(d[valueKey]/1000).toFixed(0)}k</div>
+          <div style={{ 
+            width:"100%", 
+            maxWidth: 36, 
+            height:`${(d[valueKey]/max)*110}px`, 
+            background: G1, 
+            borderRadius:"4px 4px 0 0", 
+            minHeight: 4,
+            boxShadow:`0 1px 3px rgba(0,0,0,0.1)`
+          }} />
+          <div style={{ fontSize: 10, color: MUTED, fontWeight: 600 }}>{d[labelKey]}</div>
         </div>
       ))}
     </div>
@@ -247,46 +459,87 @@ function LoginPage({ onLogin }: { onLogin:(t:string)=>void }) {
   }
 
   return (
-    <div style={{ minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", background:BG, fontFamily:FONT, position:"relative", overflow:"hidden" }}>
-      {/* Background orbs */}
-      <div style={{ position:"absolute", top:"15%", left:"20%", width:400, height:400, borderRadius:"50%", background:`radial-gradient(circle,rgba(0,212,255,0.12),transparent 70%)`, filter:"blur(40px)", pointerEvents:"none" }} />
-      <div style={{ position:"absolute", bottom:"15%", right:"20%", width:350, height:350, borderRadius:"50%", background:`radial-gradient(circle,rgba(180,79,255,0.12),transparent 70%)`, filter:"blur(40px)", pointerEvents:"none" }} />
-
-      <div style={{ width:420, position:"relative", zIndex:1 }}>
-        <div style={{ textAlign:"center", marginBottom:32 }}>
-          <div style={{ marginBottom:12 }}>
-  <img 
-    src="/PNG.jpeg"
-    alt="Company Logo"
-    style={{ 
-      height: 70,
-      objectFit: "contain",
-      display: "block",
-      margin: "0 auto"
-    }} 
-  />
-</div>
-          <div style={{ height:3, width:60, background:G1, borderRadius:2, margin:"0 auto 10px", boxShadow:"0 0 12px rgba(0,212,255,0.5)" }} />
-          <div style={{ fontSize:13, color:MUTED, fontStyle:"italic" }}>{TAGLINE}</div>
+    <div style={{ 
+      minHeight:"100vh", 
+      display:"flex", 
+      alignItems:"center", 
+      justifyContent:"center", 
+      background: `linear-gradient(135deg, #667eea 0%, #764ba2 100%)`, 
+      fontFamily: FONT, 
+      position:"relative", 
+      overflow:"hidden" 
+    }}>
+      <div style={{ width: 420, position:"relative", zIndex: 1 }}>
+        <div style={{ textAlign:"center", marginBottom: 32 }}>
+          <div style={{ marginBottom: 12 }}>
+            <img 
+              src="/PNG.jpeg"
+              alt="Company Logo"
+              style={{ 
+                height: 70,
+                objectFit: "contain",
+                display: "block",
+                margin: "0 auto"
+              }} 
+            />
+          </div>
+          <div style={{ fontSize: 14, color:"#fff", opacity: 0.9 }}>{TAGLINE}</div>
         </div>
 
-        <div style={{ background:"rgba(10,12,30,0.8)", backdropFilter:"blur(30px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:20, padding:"38px 34px", boxShadow:`0 24px 80px rgba(0,0,0,0.5),0 0 0 1px rgba(0,212,255,0.06)` }}>
-          <div style={{ fontSize:22, fontWeight:800, marginBottom:4, color:TEXT }}>Welcome back</div>
-          <div style={{ color:MUTED, fontSize:13, marginBottom:28 }}>Sign in to your ATS dashboard</div>
+        <div style={{ 
+          background: CARD, 
+          border:`1px solid ${BORDER}`, 
+          borderRadius: 16, 
+          padding:"38px 34px", 
+          boxShadow:"0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)" 
+        }}>
+          <div style={{ fontSize: 24, fontWeight: 700, marginBottom: 4, color: TEXT }}>Welcome back</div>
+          <div style={{ color: MUTED, fontSize: 14, marginBottom: 28 }}>Sign in to your ATS dashboard</div>
           <Field label="Email Address">
-            <input type="email" value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()} style={S.inp} placeholder="you@company.com" />
+            <input 
+              type="email" 
+              value={email} 
+              onChange={e=>setEmail(e.target.value)} 
+              onKeyDown={e=>e.key==="Enter"&&submit()} 
+              style={S.inp} 
+              placeholder="you@company.com" 
+            />
           </Field>
           <Field label="Password">
-            <input type="password" value={pw} onChange={e=>setPw(e.target.value)} onKeyDown={e=>e.key==="Enter"&&submit()} style={S.inp} placeholder="••••••••" />
+            <input 
+              type="password" 
+              value={pw} 
+              onChange={e=>setPw(e.target.value)} 
+              onKeyDown={e=>e.key==="Enter"&&submit()} 
+              style={S.inp} 
+              placeholder="••••••••" 
+            />
           </Field>
-          {error && <div style={{ color:"#EF4444", fontSize:12, marginBottom:14, padding:"10px 14px", background:"rgba(239,68,68,0.08)", borderRadius:10, border:"1px solid rgba(239,68,68,0.2)" }}>{error}</div>}
+          {error && (
+            <div style={{ 
+              color: DANGER, 
+              fontSize: 13, 
+              marginBottom: 14, 
+              padding:"10px 14px", 
+              background:`${DANGER}10`, 
+              borderRadius: 8, 
+              border:`1px solid ${DANGER}30` 
+            }}>{error}</div>
+          )}
           <button type="button" onClick={submit} disabled={loading}
-            style={{ ...S.btn, width:"100%", justifyContent:"center", padding:"13px", fontSize:14, opacity:loading?0.7:1 }}>
-            {loading?"Signing in...":"Sign In →"}
+            style={{ 
+              ...S.btn, 
+              width:"100%", 
+              justifyContent:"center", 
+              padding:"12px", 
+              fontSize: 15, 
+              opacity: loading ? 0.7 : 1 
+            }}>
+            {loading ? "Signing in..." : "Sign In →"}
           </button>
         </div>
-        <div style={{ textAlign:"center", marginTop:20, fontSize:11, color:MUTED }}>
-          Developed with ❤️ in India by <span style={{ color:BRAND, fontWeight:600 }}>Owais</span>
+        <div style={{ textAlign:"center", marginTop: 20, fontSize: 12, color:"#fff", opacity: 0.8 }}>
+          Developed with ❤️ in India by <span style={{ fontWeight: 600 }}>Owais</span>
         </div>
       </div>
     </div>
@@ -308,14 +561,13 @@ function Dashboard({ token, goTo, notify, userName, userRole }: any) {
       .catch(e=>notify(e.message,"error")).finally(()=>setLoading(false));
   },[token]);
 
-  if(loading) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"80vh", color:MUTED, fontSize:14 }}>Loading...</div>;
+  if(loading) return <div style={{ display:"flex", alignItems:"center", justifyContent:"center", height:"80vh", color: MUTED, fontSize: 14 }}>Loading...</div>;
 
   const now = new Date();
   const weekStart = startOfWeek();
   const monthStart = startOfMonth();
   const subs = data.s;
 
-  // Role-based submission stats
   const isRecruiter = ["RECRUITER","RECRUITING_MANAGER"].includes(userRole);
   const isSales = ["SALES","SALES_MANAGER"].includes(userRole);
 
@@ -332,33 +584,41 @@ function Dashboard({ token, goTo, notify, userName, userRole }: any) {
   return (
     <div>
       <div className="resp-bar" style={S.bar}>
-        <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Dashboard</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>Dashboard</div>
         <LiveClock />
       </div>
       <div className="resp-page" style={S.page}>
-        {/* Welcome + Profile Card */}
-        <div className="resp-profile-grid" style={{ marginBottom:24 }}>
-          <div style={{ background:`linear-gradient(135deg,rgba(0,212,255,0.07),rgba(180,79,255,0.04))`, backdropFilter:"blur(20px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:16, padding:"22px 26px", position:"relative", overflow:"hidden" }}>
-            <div style={{ position:"absolute", top:-30, right:-30, width:150, height:150, borderRadius:"50%", background:`radial-gradient(circle,rgba(0,212,255,0.15),transparent 70%)`, pointerEvents:"none" }} />
-            <div style={{ fontSize:20, fontWeight:800, color:TEXT, marginBottom:4 }}>
-              Good {now.getHours()<12?"Morning":now.getHours()<17?"Afternoon":"Evening"}, <span style={{ background:G1, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>{userName?.split(" ")[0] || "there"}</span> 👋
+        {/* Welcome Card */}
+        <div className="resp-profile-grid" style={{ marginBottom: 24 }}>
+          <div style={{ 
+            background: `linear-gradient(135deg, ${BRAND}15, ${BRAND}08)`, 
+            border:`1px solid ${BRAND}30`, 
+            borderRadius: 12, 
+            padding:"22px 26px"
+          }}>
+            <div style={{ fontSize: 22, fontWeight: 700, color: TEXT, marginBottom: 4 }}>
+              Good {now.getHours()<12?"Morning":now.getHours()<17?"Afternoon":"Evening"}, <span style={{ color: BRAND }}>{userName?.split(" ")[0] || "there"}</span> 👋
             </div>
-            <div style={{ fontSize:13, color:MUTED }}>{COMPANY} ATS · Your staffing pipeline at a glance</div>
+            <div style={{ fontSize: 14, color: MUTED }}>{COMPANY} ATS · Your staffing pipeline at a glance</div>
           </div>
-          <div style={{ background:"rgba(10,12,30,0.8)", backdropFilter:"blur(20px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:16, padding:"16px 22px", minWidth:180 }}>
-            <div style={{ fontSize:13, fontWeight:700, color:TEXT, marginBottom:4 }}>{userName || "User"}</div>
-            <div style={{ display:"inline-flex", padding:"3px 10px", borderRadius:20, fontSize:11, fontWeight:600, background:`${BRAND}18`, color:BRAND, border:`1px solid ${BRAND}30` }}>
-              {ROLES.find(r=>r.value===userRole)?.label || userRole}
-            </div>
-            <div style={{ marginTop:12, display:"flex", flexDirection:"column", gap:5 }}>
+          <div style={{ 
+            background: CARD, 
+            border:`1px solid ${BORDER}`, 
+            borderRadius: 12, 
+            padding:"16px 22px", 
+            minWidth: 180 
+          }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: TEXT, marginBottom: 4 }}>{userName || "User"}</div>
+            <Badge>{ROLES.find(r=>r.value===userRole)?.label || userRole}</Badge>
+            <div style={{ marginTop: 12, display:"flex", flexDirection:"column", gap: 5 }}>
               {[
                 { l:"Today", v:subsToday },
                 { l:"This Week", v:subsWeek },
                 { l:"This Month", v:subsMonth },
               ].map((x,i)=>(
                 <div key={i} style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                  <span style={{ fontSize:11, color:MUTED }}>{subLabel} · {x.l}</span>
-                  <span style={{ fontSize:13, fontWeight:700, color:TEXT }}>{x.v}</span>
+                  <span style={{ fontSize: 11, color: MUTED }}>{subLabel} · {x.l}</span>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: TEXT }}>{x.v}</span>
                 </div>
               ))}
             </div>
@@ -366,33 +626,59 @@ function Dashboard({ token, goTo, notify, userName, userRole }: any) {
         </div>
 
         {/* Stats Row */}
-        <div className="resp-grid-5" style={{ marginBottom:24 }}>
+        <div className="resp-grid-5" style={{ marginBottom: 24 }}>
           <Stat label="Candidates"       value={data.c.length} color={BRAND} />
-          <Stat label="Open Jobs"        value={data.j.length} color="#10B981" />
+          <Stat label="Open Jobs"        value={data.j.length} color={SUCCESS} />
           <Stat label="Clients"          value={data.cl.length} color={ACCENT} />
-          <Stat label="Placed 🎉"        value={placed}        color="#10B981" sub="All time" />
-          <Stat label="Interviews Today" value={interviewsToday} color="#F59E0B" sub="Scheduled" />
+          <Stat label="Placed 🎉"        value={placed}        color={SUCCESS} sub="All time" />
+          <Stat label="Interviews Today" value={interviewsToday} color={ACCENT} sub="Scheduled" />
         </div>
 
         {/* Alerts row */}
         {(hotJobs.length>0 || pendingReview.length>0) && (
-          <div className="resp-grid-2" style={{ marginBottom:24 }}>
+          <div className="resp-grid-2" style={{ marginBottom: 24 }}>
             {hotJobs.length>0 && (
-              <div style={{ ...S.card, padding:16, border:`1px solid rgba(245,158,11,0.2)`, background:"rgba(245,158,11,0.04)" }}>
-                <div style={{ fontSize:13, fontWeight:700, color:"#F59E0B", marginBottom:10 }}>🔥 Hot Jobs ({hotJobs.length})</div>
+              <div style={{ 
+                ...S.card, 
+                padding: 16, 
+                border:`1px solid ${ACCENT}40`, 
+                background:`${ACCENT}08`,
+                borderLeft:`4px solid ${ACCENT}`
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: ACCENT, marginBottom: 10 }}>🔥 Hot Jobs ({hotJobs.length})</div>
                 {hotJobs.slice(0,3).map((j:any,i:number)=>(
-                  <div key={i} style={{ fontSize:12, color:TEXT, padding:"7px 0", borderBottom:`1px solid rgba(255,255,255,0.04)`, display:"flex", justifyContent:"space-between" }}>
-                    <span>{j.title}</span><span style={{ color:MUTED }}>{j.client?.name}</span>
+                  <div key={i} style={{ 
+                    fontSize: 13, 
+                    color: TEXT, 
+                    padding:"7px 0", 
+                    borderBottom:`1px solid ${BORDER}`, 
+                    display:"flex", 
+                    justifyContent:"space-between" 
+                  }}>
+                    <span>{j.title}</span><span style={{ color: MUTED }}>{j.client?.name}</span>
                   </div>
                 ))}
               </div>
             )}
             {pendingReview.length>0 && (
-              <div style={{ ...S.card, padding:16, border:`1px solid rgba(0,212,255,0.15)`, background:"rgba(0,212,255,0.03)" }}>
-                <div style={{ fontSize:13, fontWeight:700, color:BRAND, marginBottom:10 }}>⏳ Pending Review ({pendingReview.length})</div>
+              <div style={{ 
+                ...S.card, 
+                padding: 16, 
+                border:`1px solid ${BRAND}40`, 
+                background:`${BRAND}08`,
+                borderLeft:`4px solid ${BRAND}`
+              }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: BRAND, marginBottom: 10 }}>⏳ Pending Review ({pendingReview.length})</div>
                 {pendingReview.slice(0,3).map((s:any,i:number)=>(
-                  <div key={i} style={{ fontSize:12, color:TEXT, padding:"7px 0", borderBottom:`1px solid rgba(255,255,255,0.04)`, display:"flex", justifyContent:"space-between" }}>
-                    <span>{s.candidate?.name}</span><span style={{ color:MUTED }}>{s.job?.title}</span>
+                  <div key={i} style={{ 
+                    fontSize: 13, 
+                    color: TEXT, 
+                    padding:"7px 0", 
+                    borderBottom:`1px solid ${BORDER}`, 
+                    display:"flex", 
+                    justifyContent:"space-between" 
+                  }}>
+                    <span>{s.candidate?.name}</span><span style={{ color: MUTED }}>{s.job?.title}</span>
                   </div>
                 ))}
               </div>
@@ -403,36 +689,92 @@ function Dashboard({ token, goTo, notify, userName, userRole }: any) {
         {/* Recent tables */}
         <div className="resp-grid-2">
           <div style={S.card}>
-            <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>Recent Candidates</span>
-              <button type="button" onClick={()=>goTo("candidates")} style={{ fontSize:12, color:BRAND, background:"none", border:"none", cursor:"pointer", fontFamily:FONT }}>View all →</button>
+            <div style={{ 
+              padding:"14px 18px", 
+              borderBottom:`1px solid ${BORDER}`, 
+              display:"flex", 
+              justifyContent:"space-between", 
+              alignItems:"center",
+              background: "#F9FAFB"
+            }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>Recent Candidates</span>
+              <button type="button" onClick={()=>goTo("candidates")} style={{ 
+                fontSize: 13, 
+                color: BRAND, 
+                background:"none", 
+                border:"none", 
+                cursor:"pointer", 
+                fontFamily: FONT,
+                fontWeight: 500
+              }}>View all →</button>
             </div>
-            {data.c.length===0 ? <div style={{ padding:24, textAlign:"center", color:MUTED, fontSize:13 }}>No candidates yet</div> :
+            {data.c.length===0 ? (
+              <div style={{ padding: 24, textAlign:"center", color: MUTED, fontSize: 13 }}>No candidates yet</div>
+            ) : (
               data.c.slice(0,5).map((x:any,i:number)=>(
-                <div key={i} style={{ padding:"11px 18px", borderBottom:`1px solid rgba(255,255,255,0.04)`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div key={i} style={{ 
+                  padding:"12px 18px", 
+                  borderBottom:`1px solid ${BORDER}`, 
+                  display:"flex", 
+                  alignItems:"center", 
+                  justifyContent:"space-between",
+                  transition:"background 0.15s",
+                  cursor:"pointer"
+                }}
+                onMouseEnter={e=>e.currentTarget.style.background="#F9FAFB"}
+                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                   <div>
-                    <div style={{ fontSize:13, fontWeight:500, color:TEXT }}>{x.name||"—"}</div>
-                    <div style={{ fontSize:11, color:MUTED }}>{x.candidateId||""}{x.email?` · ${x.email}`:""}</div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: TEXT }}>{x.name||"—"}</div>
+                    <div style={{ fontSize: 12, color: MUTED }}>{x.candidateId||""}{x.email?` · ${x.email}`:""}</div>
                   </div>
                   <Badge status={x.status}>{x.status||"sourcing"}</Badge>
                 </div>
-              ))}
+              ))
+            )}
           </div>
           <div style={S.card}>
-            <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>Open Jobs</span>
-              <button type="button" onClick={()=>goTo("jobs")} style={{ fontSize:12, color:BRAND, background:"none", border:"none", cursor:"pointer", fontFamily:FONT }}>View all →</button>
+            <div style={{ 
+              padding:"14px 18px", 
+              borderBottom:`1px solid ${BORDER}`, 
+              display:"flex", 
+              justifyContent:"space-between", 
+              alignItems:"center",
+              background: "#F9FAFB"
+            }}>
+              <span style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>Open Jobs</span>
+              <button type="button" onClick={()=>goTo("jobs")} style={{ 
+                fontSize: 13, 
+                color: BRAND, 
+                background:"none", 
+                border:"none", 
+                cursor:"pointer", 
+                fontFamily: FONT,
+                fontWeight: 500
+              }}>View all →</button>
             </div>
-            {data.j.length===0 ? <div style={{ padding:24, textAlign:"center", color:MUTED, fontSize:13 }}>No jobs yet</div> :
+            {data.j.length===0 ? (
+              <div style={{ padding: 24, textAlign:"center", color: MUTED, fontSize: 13 }}>No jobs yet</div>
+            ) : (
               data.j.slice(0,5).map((x:any,i:number)=>(
-                <div key={i} style={{ padding:"11px 18px", borderBottom:`1px solid rgba(255,255,255,0.04)`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                <div key={i} style={{ 
+                  padding:"12px 18px", 
+                  borderBottom:`1px solid ${BORDER}`, 
+                  display:"flex", 
+                  alignItems:"center", 
+                  justifyContent:"space-between",
+                  transition:"background 0.15s",
+                  cursor:"pointer"
+                }}
+                onMouseEnter={e=>e.currentTarget.style.background="#F9FAFB"}
+                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
                   <div>
-                    <div style={{ fontSize:13, fontWeight:500, color:TEXT }}>{x.isHot?"🔥 ":""}{x.title||"—"}</div>
-                    <div style={{ fontSize:11, color:MUTED }}>{x.jobId||""}{x.client?.name?` · ${x.client.name}`:""}</div>
+                    <div style={{ fontSize: 14, fontWeight: 500, color: TEXT }}>{x.isHot?"🔥 ":""}{x.title||"—"}</div>
+                    <div style={{ fontSize: 12, color: MUTED }}>{x.jobId||""}{x.client?.name?` · ${x.client.name}`:""}</div>
                   </div>
                   <Badge status={x.status}>{x.status||"Open"}</Badge>
                 </div>
-              ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -462,21 +804,21 @@ function DataPage({ title, token, notify, endpoint, columns, addTitle, addFields
   return (
     <div>
       <div className="resp-bar" style={S.bar}>
-        <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>{title}</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>{title}</div>
         {addFields && <button type="button" onClick={()=>setModal(true)} style={S.btn}>+ {addTitle}</button>}
       </div>
       <div className="resp-page" style={S.page}>
         <div style={S.card}>
-          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All {title} ({list.length})</span>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width:220 }} />
+          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between", background: "#F9FAFB" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>All {title} ({list.length})</span>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
           </div>
-          {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> :
-            filtered.length===0 ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>No {title.toLowerCase()} found</div> :
+          {loading ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>Loading...</div> :
+            filtered.length===0 ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>No {title.toLowerCase()} found</div> :
             <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr>{columns.map((c:any)=><th key={c.key} style={S.th}>{c.label}</th>)}</tr></thead>
               <tbody>{filtered.map((x:any,i:number)=>(
-                <tr key={i} style={{ transition:"background 0.15s" }} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.02)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
+                <tr key={i} style={{ transition:"background 0.15s" }} onMouseEnter={e=>(e.currentTarget.style.background="#F9FAFB")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")}>
                   {columns.map((c:any)=><td key={c.key} style={c.isName?S.tdn:S.td}>{c.render?c.render(x):x[c.key]||"—"}</td>)}
                 </tr>
               ))}</tbody>
@@ -487,7 +829,7 @@ function DataPage({ title, token, notify, endpoint, columns, addTitle, addFields
         <Modal title={`Add ${addTitle}`} onClose={()=>setModal(false)} onSave={save} saving={saving}>
           {addFields.map((f:any)=>(
             <Field key={f.key} label={f.label}>
-              {f.type==="textarea" ? <textarea style={{ ...S.inp, minHeight:80, resize:"vertical" }} value={form[f.key]||""} onChange={e=>setForm({...form,[f.key]:e.target.value})} /> :
+              {f.type==="textarea" ? <textarea style={{ ...S.inp, minHeight: 80, resize:"vertical" }} value={form[f.key]||""} onChange={e=>setForm({...form,[f.key]:e.target.value})} /> :
                f.type==="select" ? <select style={S.inp} value={form[f.key]||f.options[0].value} onChange={e=>setForm({...form,[f.key]:e.target.value})}>{f.options.map((o:any)=><option key={o.value} value={o.value}>{o.label}</option>)}</select> :
                <input style={S.inp} type={f.type||"text"} value={form[f.key]||""} onChange={e=>setForm({...form,[f.key]:e.target.value})} placeholder={f.placeholder||""} />}
             </Field>
@@ -515,26 +857,26 @@ function Analytics({ token }: any) {
 
   return (
     <div>
-      <div className="resp-bar" style={S.bar}><div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Analytics</div></div>
+      <div className="resp-bar" style={S.bar}><div style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>Analytics</div></div>
       <div className="resp-page" style={S.page}>
-        {loading ? <div style={{ padding:60, textAlign:"center", color:MUTED }}>Loading...</div> : <>
-          <div className="resp-grid-4" style={{ marginBottom:24 }}>
-            <Stat label="Total Placements" value={rec?.totalPlacements||0} color="#10B981" />
+        {loading ? <div style={{ padding: 60, textAlign:"center", color: MUTED }}>Loading...</div> : <>
+          <div className="resp-grid-4" style={{ marginBottom: 24 }}>
+            <Stat label="Total Placements" value={rec?.totalPlacements||0} color={SUCCESS} />
             <Stat label="Active Submissions" value={rec?.activeSubmissions||0} color={BRAND} />
             <Stat label="Fill Rate" value={`${rec?.fillRate||0}%`} color={ACCENT} />
-            <Stat label="Revenue" value={`$${Math.floor((rec?.revenue||0)/1000)}k`} color="#F59E0B" />
+            <Stat label="Revenue" value={`$${Math.floor((rec?.revenue||0)/1000)}k`} color={ACCENT} />
           </div>
           <div className="resp-grid-2">
-            <div style={{ ...S.card, padding:20 }}>
-              <div style={{ fontSize:14, fontWeight:700, marginBottom:16, color:TEXT }}>Revenue Forecast</div>
+            <div style={{ ...S.card, padding: 20 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, color: TEXT }}>Revenue Forecast</div>
               <SimpleBar data={cd} labelKey="month" valueKey="revenue" />
             </div>
-            <div style={{ ...S.card, padding:20 }}>
-              <div style={{ fontSize:14, fontWeight:700, marginBottom:16, color:TEXT }}>Recruiter Metrics</div>
-              {[{l:"Avg Time to Fill",v:`${rec?.avgTimeToFill||14} days`,c:BRAND},{l:"Sub → Interview",v:`${rec?.subToInterview||45}%`,c:"#7B2FFF"},{l:"Interview → Offer",v:`${rec?.interviewToOffer||62}%`,c:ACCENT},{l:"Offer Acceptance",v:`${rec?.offerAcceptance||88}%`,c:"#10B981"}].map((m,i)=>(
-                <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"10px 14px", background:"rgba(255,255,255,0.03)", borderRadius:10, border:`1px solid ${GLASS_BORDER}`, marginBottom:8 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8 }}><div style={{ width:8, height:8, borderRadius:2, background:m.c, boxShadow:`0 0 8px ${m.c}` }} /><span style={{ fontSize:13, color:MUTED }}>{m.l}</span></div>
-                  <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>{m.v}</span>
+            <div style={{ ...S.card, padding: 20 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 16, color: TEXT }}>Recruiter Metrics</div>
+              {[{l:"Avg Time to Fill",v:`${rec?.avgTimeToFill||14} days`,c:BRAND},{l:"Sub → Interview",v:`${rec?.subToInterview||45}%`,c:"#8B5CF6"},{l:"Interview → Offer",v:`${rec?.interviewToOffer||62}%`,c:ACCENT},{l:"Offer Acceptance",v:`${rec?.offerAcceptance||88}%`,c:SUCCESS}].map((m,i)=>(
+                <div key={i} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 14px", background: "#F9FAFB", borderRadius: 8, border:`1px solid ${BORDER}`, marginBottom: 8 }}>
+                  <div style={{ display:"flex", alignItems:"center", gap: 8 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: m.c }} /><span style={{ fontSize: 13, color: TEXT }}>{m.l}</span></div>
+                  <span style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{m.v}</span>
                 </div>
               ))}
             </div>
@@ -582,54 +924,54 @@ function AITools({ token, notify }: any) {
 
   return (
     <div>
-      <div className="resp-bar" style={S.bar}><div style={{ fontSize:18, fontWeight:700, color:TEXT }}>AI Tools</div></div>
+      <div className="resp-bar" style={S.bar}><div style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>AI Tools</div></div>
       <div className="resp-page" style={S.page}>
-        <div style={{ display:"flex", gap:6, marginBottom:20 }}>
+        <div style={{ display:"flex", gap: 6, marginBottom: 20 }}>
           {[{id:"resume",l:"Parse Resume"},{id:"jd",l:"Parse JD"},{id:"match",l:"AI Match"}].map(t=>(
             <button key={t.id} type="button" onClick={()=>{ setTab(t.id); setRes(null); setTxt(""); setFile(null); }}
-              style={{ padding:"9px 18px", borderRadius:10, fontSize:13, fontWeight:tab===t.id?700:400, cursor:"pointer", border:tab===t.id?"none":`1px solid ${GLASS_BORDER}`, background:tab===t.id?G1:"rgba(255,255,255,0.04)", color:tab===t.id?"#fff":MUTED, boxShadow:tab===t.id?"0 4px 16px rgba(0,212,255,0.2)":"none", fontFamily:FONT }}>{t.l}</button>
+              style={{ padding:"10px 18px", borderRadius: 8, fontSize: 14, fontWeight: tab===t.id ? 600 : 400, cursor:"pointer", border: tab===t.id ? "none" : `1px solid ${BORDER}`, background: tab===t.id ? BRAND : CARD, color: tab===t.id ? "#fff" : TEXT, boxShadow: tab===t.id ? "0 1px 3px rgba(0,0,0,0.1)" : "none", fontFamily: FONT }}>{t.l}</button>
           ))}
         </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
-          <div style={{ ...S.card, padding:20 }}>
-            <div style={{ fontSize:14, fontWeight:700, marginBottom:14, color:TEXT }}>{tab==="resume"?"Resume Input":tab==="jd"?"Job Description Input":"Match Candidate to Job"}</div>
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap: 16 }}>
+          <div style={{ ...S.card, padding: 20 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, color: TEXT }}>{tab==="resume"?"Resume Input":tab==="jd"?"Job Description Input":"Match Candidate to Job"}</div>
             {tab==="match" ? (
               <>
                 <Field label="Candidate ID (CAN-0001 or internal ID)"><input style={S.inp} value={cid} onChange={e=>setCid(e.target.value)} placeholder="e.g. CAN-0001" /></Field>
                 <Field label="Job ID (JOB-0001 or internal ID)"><input style={S.inp} value={jid} onChange={e=>setJid(e.target.value)} placeholder="e.g. JOB-0001" /></Field>
-                <div style={{ fontSize:11, color:MUTED, padding:"8px 12px", background:"rgba(0,212,255,0.05)", borderRadius:8, border:`1px solid rgba(0,212,255,0.1)` }}>💡 Use the readable ID (CAN-0001) from the Candidates or Jobs page</div>
+                <div style={{ fontSize: 12, color: MUTED, padding:"10px 12px", background:`${BRAND}08`, borderRadius: 8, border:`1px solid ${BRAND}20` }}>💡 Use the readable ID (CAN-0001) from the Candidates or Jobs page</div>
               </>
             ) : (
               <>
-                <div style={{ display:"flex", gap:6, marginBottom:14 }}>
+                <div style={{ display:"flex", gap: 6, marginBottom: 14 }}>
                   {[{id:"text",l:"✏️ Paste Text"},{id:"file",l:"📎 Upload File"}].map(m=>(
                     <button key={m.id} type="button" onClick={()=>setInputMode(m.id as any)}
-                      style={{ padding:"6px 14px", borderRadius:8, fontSize:12, cursor:"pointer", border:`1px solid ${GLASS_BORDER}`, background:inputMode===m.id?BRAND:"transparent", color:inputMode===m.id?"#fff":MUTED, fontFamily:FONT }}>{m.l}</button>
+                      style={{ padding:"7px 14px", borderRadius: 6, fontSize: 13, cursor:"pointer", border:`1px solid ${BORDER}`, background: inputMode===m.id ? BRAND : "transparent", color: inputMode===m.id ? "#fff" : TEXT, fontFamily: FONT, fontWeight: 500 }}>{m.l}</button>
                   ))}
                 </div>
-                {inputMode==="text" ? <textarea value={txt} onChange={e=>setTxt(e.target.value)} placeholder="Paste resume or JD text here..." style={{ ...S.inp, minHeight:200, resize:"vertical" }} /> : (
-                  <div style={{ border:`2px dashed rgba(255,255,255,0.08)`, borderRadius:12, padding:28, textAlign:"center", background:"rgba(255,255,255,0.02)" }}>
-                    <div style={{ fontSize:36, marginBottom:10 }}>📄</div>
-                    <div style={{ fontSize:13, color:MUTED, marginBottom:14 }}>Upload PDF or Word document</div>
+                {inputMode==="text" ? <textarea value={txt} onChange={e=>setTxt(e.target.value)} placeholder="Paste resume or JD text here..." style={{ ...S.inp, minHeight: 200, resize:"vertical" }} /> : (
+                  <div style={{ border:`2px dashed ${BORDER}`, borderRadius: 12, padding: 28, textAlign:"center", background: "#F9FAFB" }}>
+                    <div style={{ fontSize: 36, marginBottom: 10 }}>📄</div>
+                    <div style={{ fontSize: 13, color: MUTED, marginBottom: 14 }}>Upload PDF or Word document</div>
                     <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={e=>setFile(e.target.files?.[0]||null)} style={{ display:"none" }} id="fileInput" />
                     <label htmlFor="fileInput" style={{ ...S.btn, cursor:"pointer" }}>Choose File</label>
-                    {file && <div style={{ marginTop:12, fontSize:12, color:BRAND, fontWeight:600 }}>✅ {file.name}</div>}
+                    {file && <div style={{ marginTop: 12, fontSize: 13, color: BRAND, fontWeight: 600 }}>✅ {file.name}</div>}
                   </div>
                 )}
               </>
             )}
-            <button type="button" onClick={run} disabled={loading} style={{ ...S.btn, marginTop:14, opacity:loading?0.6:1 }}>{loading?"Analyzing...":"⚡ Run AI Analysis"}</button>
+            <button type="button" onClick={run} disabled={loading} style={{ ...S.btn, marginTop: 14, opacity: loading ? 0.6 : 1 }}>{loading?"Analyzing...":"⚡ Run AI Analysis"}</button>
           </div>
-          <div style={{ ...S.card, padding:20 }}>
-            <div style={{ fontSize:14, fontWeight:700, marginBottom:14, color:TEXT }}>Results</div>
-            {!res ? <div style={{ textAlign:"center", padding:"60px 20px", color:MUTED }}>🤖<br /><span style={{ fontSize:13 }}>Run an analysis to see results</span></div> : (
-              <div style={{ display:"flex", flexDirection:"column", gap:10, maxHeight:400, overflowY:"auto" }}>
+          <div style={{ ...S.card, padding: 20 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 14, color: TEXT }}>Results</div>
+            {!res ? <div style={{ textAlign:"center", padding:"60px 20px", color: MUTED }}>🤖<br /><span style={{ fontSize: 13 }}>Run an analysis to see results</span></div> : (
+              <div style={{ display:"flex", flexDirection:"column", gap: 10, maxHeight: 400, overflowY:"auto" }}>
                 {res?.data&&Object.entries(res.data).map(([key,value]:any)=>(
-                  <div key={key} style={{ background:"rgba(255,255,255,0.03)", border:`1px solid ${GLASS_BORDER}`, borderRadius:10, padding:"10px 14px" }}>
-                    <div style={{ fontSize:10, fontWeight:700, color:MUTED, textTransform:"uppercase", letterSpacing:"0.8px", marginBottom:5 }}>{key.replace(/([A-Z])/g," $1").trim()}</div>
-                    <div style={{ fontSize:13, color:TEXT }}>
-                      {Array.isArray(value) ? (value.length>0 ? <div style={{ display:"flex", flexWrap:"wrap", gap:4, marginTop:4 }}>{value.map((v:string,i:number)=><span key={i} style={{ background:GLASS_BORDER, padding:"2px 8px", borderRadius:10, fontSize:11 }}>{v}</span>)}</div> : <span style={{ color:MUTED }}>None</span>) :
-                       typeof value==="number" ? <span style={{ color:BRAND, fontWeight:700, fontSize:20 }}>{value}</span> : String(value)||"—"}
+                  <div key={key} style={{ background: "#F9FAFB", border:`1px solid ${BORDER}`, borderRadius: 8, padding:"12px 14px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: MUTED, textTransform:"uppercase", letterSpacing:"0.5px", marginBottom: 5 }}>{key.replace(/([A-Z])/g," $1").trim()}</div>
+                    <div style={{ fontSize: 13, color: TEXT }}>
+                      {Array.isArray(value) ? (value.length>0 ? <div style={{ display:"flex", flexWrap:"wrap", gap: 4, marginTop: 4 }}>{value.map((v:string,i:number)=><span key={i} style={{ background: CARD, padding:"4px 8px", borderRadius: 6, fontSize: 12, border:`1px solid ${BORDER}` }}>{v}</span>)}</div> : <span style={{ color: MUTED }}>None</span>) :
+                       typeof value==="number" ? <span style={{ color: BRAND, fontWeight: 700, fontSize: 20 }}>{value}</span> : String(value)||"—"}
                     </div>
                   </div>
                 ))}
@@ -673,17 +1015,17 @@ function CandidatesPage({ token, notify }: any) {
   return (
     <div>
       <div className="resp-bar" style={S.bar}>
-        <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Candidates</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>Candidates</div>
         <button type="button" onClick={()=>{ setForm({}); setEditId(null); setModal(true); }} style={S.btn}>+ Add Candidate</button>
       </div>
       <div className="resp-page" style={S.page}>
         <div style={S.card}>
-          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All Candidates ({list.length})</span>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width:220 }} />
+          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between", background: "#F9FAFB" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>All Candidates ({list.length})</span>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
           </div>
-          {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> :
-           filtered.length===0 ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>No candidates found</div> : (
+          {loading ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>Loading...</div> :
+           filtered.length===0 ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>No candidates found</div> : (
             <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr>
                 <th style={S.th}>CAN ID</th><th style={S.th}>Name</th><th style={S.th}>Email</th>
@@ -691,10 +1033,10 @@ function CandidatesPage({ token, notify }: any) {
                 <th style={S.th}>Status</th><th style={S.th}>Actions</th>
               </tr></thead>
               <tbody>{filtered.map((x:any,i:number)=>(
-                <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.02)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
+                <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="#F9FAFB")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
                   <td style={S.td}>
                     <span onClick={()=>{ navigator.clipboard.writeText(x.id); notify("ID copied!","success"); }}
-                      style={{ fontFamily:"monospace", fontSize:11, background:"rgba(0,212,255,0.08)", padding:"3px 8px", borderRadius:6, color:BRAND, cursor:"pointer", border:`1px solid rgba(0,212,255,0.2)`, whiteSpace:"nowrap" }}>
+                      style={{ fontFamily:"monospace", fontSize: 11, background:`${BRAND}12`, padding:"4px 8px", borderRadius: 6, color: BRAND, cursor:"pointer", border:`1px solid ${BRAND}30`, whiteSpace:"nowrap" }}>
                       {x.candidateId||x.id?.slice(0,8)}
                     </span>
                   </td>
@@ -705,11 +1047,11 @@ function CandidatesPage({ token, notify }: any) {
                   <td style={S.td}>{x.rateExpectation||"—"}</td>
                   <td style={S.td}><Badge status={x.status}>{x.status||"sourcing"}</Badge></td>
                   <td style={S.td}>
-                    <div style={{ display:"flex", gap:6 }}>
+                    <div style={{ display:"flex", gap: 6 }}>
                       <button type="button" onClick={()=>{ setForm({name:x.name,email:x.email||"",phone:x.phone||"",location:x.location||"",visaStatus:x.visaStatus||"",rateExpectation:x.rateExpectation||"",availability:x.availability||"",employmentType:x.employmentType||"CONTRACT",status:x.status||"sourcing"}); setEditId(x.id); setModal(true); }}
-                        style={{ padding:"4px 10px", fontSize:11, borderRadius:6, border:`1px solid ${GLASS_BORDER}`, background:"rgba(0,212,255,0.08)", color:BRAND, cursor:"pointer", fontFamily:FONT }}>✏️ Edit</button>
+                        style={{ padding:"5px 10px", fontSize: 12, borderRadius: 6, border:`1px solid ${BORDER}`, background:`${BRAND}12`, color: BRAND, cursor:"pointer", fontFamily: FONT, fontWeight: 500 }}>✏️ Edit</button>
                       <button type="button" onClick={()=>del(x.id,x.name)}
-                        style={{ padding:"4px 10px", fontSize:11, borderRadius:6, border:"1px solid rgba(239,68,68,0.2)", background:"rgba(239,68,68,0.06)", color:"#EF4444", cursor:"pointer", fontFamily:FONT }}>🗑</button>
+                        style={{ padding:"5px 10px", fontSize: 12, borderRadius: 6, border:`1px solid ${DANGER}40`, background:`${DANGER}10`, color: DANGER, cursor:"pointer", fontFamily: FONT, fontWeight: 500 }}>🗑</button>
                     </div>
                   </td>
                 </tr>
@@ -776,17 +1118,17 @@ function JobsPage({ token, notify }: any) {
   return (
     <div>
       <div className="resp-bar" style={S.bar}>
-        <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Jobs</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>Jobs</div>
         <button type="button" onClick={()=>{ setForm({type:"Contract"}); setEditId(null); setModal(true); }} style={S.btn}>+ Add Job</button>
       </div>
       <div className="resp-page" style={S.page}>
         <div style={S.card}>
-          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All Jobs ({list.length})</span>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width:220 }} />
+          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between", background: "#F9FAFB" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>All Jobs ({list.length})</span>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
           </div>
-          {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> :
-           filtered.length===0 ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>No jobs found</div> : (
+          {loading ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>Loading...</div> :
+           filtered.length===0 ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>No jobs found</div> : (
             <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr>
                 <th style={S.th}>JOB ID</th><th style={S.th}>Title</th><th style={S.th}>Client</th>
@@ -794,10 +1136,10 @@ function JobsPage({ token, notify }: any) {
                 <th style={S.th}>Status</th><th style={S.th}>Actions</th>
               </tr></thead>
               <tbody>{filtered.map((x:any,i:number)=>(
-                <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.02)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
+                <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="#F9FAFB")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
                   <td style={S.td}>
                     <span onClick={()=>{ navigator.clipboard.writeText(x.id); notify("ID copied!","success"); }}
-                      style={{ fontFamily:"monospace", fontSize:11, background:"rgba(0,212,255,0.08)", padding:"3px 8px", borderRadius:6, color:BRAND, cursor:"pointer", border:`1px solid rgba(0,212,255,0.2)` }}>
+                      style={{ fontFamily:"monospace", fontSize: 11, background:`${BRAND}12`, padding:"4px 8px", borderRadius: 6, color: BRAND, cursor:"pointer", border:`1px solid ${BRAND}30` }}>
                       {x.jobId||x.id?.slice(0,8)}
                     </span>
                   </td>
@@ -809,7 +1151,7 @@ function JobsPage({ token, notify }: any) {
                   <td style={S.td}><Badge status={x.status}>{x.status||"Open"}</Badge></td>
                   <td style={S.td}>
                     <button type="button" onClick={()=>{ setForm({clientId:x.client?.id||x.clientId,title:x.title,description:x.description||"",location:x.location||"",type:x.type||"Contract",rateNumeric:x.rateNumeric||"",currency:x.currency||"USD",paymentType:x.paymentType||"Hourly",duration:x.duration||"",remote:x.remote||"",isHot:x.isHot||false}); setEditId(x.id); setModal(true); }}
-                      style={{ padding:"4px 10px", fontSize:11, borderRadius:6, border:`1px solid ${GLASS_BORDER}`, background:"rgba(0,212,255,0.08)", color:BRAND, cursor:"pointer", fontFamily:FONT }}>✏️ Edit</button>
+                      style={{ padding:"5px 10px", fontSize: 12, borderRadius: 6, border:`1px solid ${BORDER}`, background:`${BRAND}12`, color: BRAND, cursor:"pointer", fontFamily: FONT, fontWeight: 500 }}>✏️ Edit</button>
                   </td>
                 </tr>
               ))}</tbody>
@@ -826,9 +1168,9 @@ function JobsPage({ token, notify }: any) {
             </select>
           </Field>
           <Field label="Job Title *"><input style={S.inp} value={form.title||""} onChange={e=>setForm({...form,title:e.target.value})} placeholder="e.g. SAP FICO Consultant" /></Field>
-          <Field label="Description"><textarea style={{ ...S.inp, minHeight:80, resize:"vertical" }} value={form.description||""} onChange={e=>setForm({...form,description:e.target.value})} /></Field>
+          <Field label="Description"><textarea style={{ ...S.inp, minHeight: 80, resize:"vertical" }} value={form.description||""} onChange={e=>setForm({...form,description:e.target.value})} /></Field>
           <Field label="Location"><input style={S.inp} value={form.location||""} onChange={e=>setForm({...form,location:e.target.value})} placeholder="e.g. Dallas, TX" /></Field>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap: 12 }}>
             <Field label="Type">
               <select style={S.inp} value={form.type||"Contract"} onChange={e=>setForm({...form,type:e.target.value})}>
                 <option value="Contract">Contract</option><option value="Permanent">Permanent</option><option value="ContractToHire">Contract to Hire</option>
@@ -836,7 +1178,7 @@ function JobsPage({ token, notify }: any) {
             </Field>
             <Field label="Duration"><input style={S.inp} value={form.duration||""} onChange={e=>setForm({...form,duration:e.target.value})} placeholder="e.g. 6 months" /></Field>
           </div>
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:12 }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap: 12 }}>
             <Field label="Rate"><input style={S.inp} type="number" value={form.rateNumeric||""} onChange={e=>setForm({...form,rateNumeric:e.target.value})} placeholder="85" /></Field>
             <Field label="Currency">
               <select style={S.inp} value={form.currency||"USD"} onChange={e=>setForm({...form,currency:e.target.value})}>
@@ -919,17 +1261,17 @@ function SubmissionsPage({ token, notify, userRole }: any) {
   return (
     <div>
       <div className="resp-bar" style={S.bar}>
-        <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Submissions</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>Submissions</div>
         <button type="button" onClick={()=>setModal(true)} style={S.btn}>+ Add Submission</button>
       </div>
       <div className="resp-page" style={S.page}>
         <div style={S.card}>
-          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All Submissions ({list.length})</span>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width:220 }} />
+          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between", background: "#F9FAFB" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>All Submissions ({list.length})</span>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
           </div>
-          {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> :
-           filtered.length===0 ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>No submissions yet</div> : (
+          {loading ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>Loading...</div> :
+           filtered.length===0 ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>No submissions yet</div> : (
             <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr>
                 <th style={S.th}>SUB ID</th><th style={S.th}>Candidate</th><th style={S.th}>Job</th>
@@ -937,15 +1279,15 @@ function SubmissionsPage({ token, notify, userRole }: any) {
                 <th style={S.th}>Submitted</th>{canChangeStatus&&<th style={S.th}>Actions</th>}
               </tr></thead>
               <tbody>{filtered.map((x:any,i:number)=>(
-                <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.02)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
-                  <td style={S.td}><span style={{ fontFamily:"monospace", fontSize:11, background:"rgba(0,212,255,0.08)", padding:"3px 8px", borderRadius:6, color:BRAND, border:`1px solid rgba(0,212,255,0.2)` }}>{x.submissionId||x.id?.slice(0,8)}</span></td>
+                <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="#F9FAFB")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
+                  <td style={S.td}><span style={{ fontFamily:"monospace", fontSize: 11, background:`${BRAND}12`, padding:"4px 8px", borderRadius: 6, color: BRAND, border:`1px solid ${BRAND}30` }}>{x.submissionId||x.id?.slice(0,8)}</span></td>
                   <td style={S.tdn}>{x.candidate?.name||"—"}</td>
                   <td style={S.td}>{x.job?.title||"—"}</td>
                   <td style={S.td}>{x.job?.client?.name||"—"}</td>
                   <td style={S.td}><Badge status={x.status}>{x.status||"pending_review"}</Badge></td>
-                  <td style={S.td}>{x.interviewDate ? <span style={{ color:isToday(x.interviewDate)?"#F59E0B":MUTED }}>{isToday(x.interviewDate)?"📅 Today":fmt(x.interviewDate)}</span> : "—"}</td>
+                  <td style={S.td}>{x.interviewDate ? <span style={{ color: isToday(x.interviewDate) ? ACCENT : MUTED }}>{isToday(x.interviewDate)?"📅 Today":fmt(x.interviewDate)}</span> : "—"}</td>
                   <td style={S.td}>{fmt(x.submissionDate||x.createdAt)}</td>
-                  {canChangeStatus&&<td style={S.td}><button type="button" onClick={()=>{ setStatusModal(x); setStatusForm({status:x.status,internalNotes:x.internalNotes||""}); }} style={{ padding:"4px 10px", fontSize:11, borderRadius:6, border:`1px solid ${GLASS_BORDER}`, background:"rgba(0,212,255,0.08)", color:BRAND, cursor:"pointer", fontFamily:FONT }}>✏️ Update</button></td>}
+                  {canChangeStatus&&<td style={S.td}><button type="button" onClick={()=>{ setStatusModal(x); setStatusForm({status:x.status,internalNotes:x.internalNotes||""}); }} style={{ padding:"5px 10px", fontSize: 12, borderRadius: 6, border:`1px solid ${BORDER}`, background:`${BRAND}12`, color: BRAND, cursor:"pointer", fontFamily: FONT, fontWeight: 500 }}>✏️ Update</button></td>}
                 </tr>
               ))}</tbody>
             </table></div>
@@ -955,7 +1297,7 @@ function SubmissionsPage({ token, notify, userRole }: any) {
 
       {modal && (
         <Modal title="Add Submission" onClose={()=>setModal(false)} onSave={save} saving={saving}>
-          <div style={{ fontSize:12, color:MUTED, marginBottom:16, padding:"10px 14px", background:"rgba(0,212,255,0.05)", borderRadius:10, border:`1px solid rgba(0,212,255,0.12)` }}>
+          <div style={{ fontSize: 13, color: MUTED, marginBottom: 16, padding:"10px 14px", background:`${BRAND}08`, borderRadius: 8, border:`1px solid ${BRAND}20` }}>
             ℹ️ Submission will be sent for manager review automatically.
           </div>
           <Field label="Candidate *">
@@ -970,22 +1312,22 @@ function SubmissionsPage({ token, notify, userRole }: any) {
               {jobs.map((j:any)=><option key={j.id} value={j.id}>{j.title}{j.jobId?` (${j.jobId})`:""} — {j.client?.name||"No client"}</option>)}
             </select>
           </Field>
-          <Field label="Notes"><textarea style={{ ...S.inp, minHeight:80, resize:"vertical" }} value={form.notes||""} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any notes..." /></Field>
+          <Field label="Notes"><textarea style={{ ...S.inp, minHeight: 80, resize:"vertical" }} value={form.notes||""} onChange={e=>setForm({...form,notes:e.target.value})} placeholder="Any notes..." /></Field>
           <Field label="Interview Date"><input style={S.inp} type="date" value={form.interviewDate||""} onChange={e=>setForm({...form,interviewDate:e.target.value})} /></Field>
         </Modal>
       )}
 
       {statusModal && (
         <Modal title={`Update — ${statusModal.candidate?.name}`} onClose={()=>{ setStatusModal(null); setStatusForm({}); }} onSave={updateStatus} saving={saving}>
-          <div style={{ fontSize:12, color:MUTED, marginBottom:16 }}>Current: <Badge status={statusModal.status}>{statusModal.status}</Badge></div>
+          <div style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>Current: <Badge status={statusModal.status}>{statusModal.status}</Badge></div>
           <Field label="New Status">
             <select style={S.inp} value={statusForm.status||""} onChange={e=>setStatusForm({...statusForm,status:e.target.value})}>
               <option value="">— Select Status —</option>
               {availableStatuses.map(s=><option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
           </Field>
-          {canApprove&&<Field label="Internal Notes"><textarea style={{ ...S.inp, minHeight:60, resize:"vertical" }} value={statusForm.internalNotes||""} onChange={e=>setStatusForm({...statusForm,internalNotes:e.target.value})} placeholder="Internal notes..." /></Field>}
-          {canSubmitToClient&&<Field label="Client Feedback"><textarea style={{ ...S.inp, minHeight:60, resize:"vertical" }} value={statusForm.clientFeedback||""} onChange={e=>setStatusForm({...statusForm,clientFeedback:e.target.value})} placeholder="Client feedback..." /></Field>}
+          {canApprove&&<Field label="Internal Notes"><textarea style={{ ...S.inp, minHeight: 60, resize:"vertical" }} value={statusForm.internalNotes||""} onChange={e=>setStatusForm({...statusForm,internalNotes:e.target.value})} placeholder="Internal notes..." /></Field>}
+          {canSubmitToClient&&<Field label="Client Feedback"><textarea style={{ ...S.inp, minHeight: 60, resize:"vertical" }} value={statusForm.clientFeedback||""} onChange={e=>setStatusForm({...statusForm,clientFeedback:e.target.value})} placeholder="Client feedback..." /></Field>}
           <Field label="Interview Date"><input style={S.inp} type="date" value={statusForm.interviewDate||""} onChange={e=>setStatusForm({...statusForm,interviewDate:e.target.value})} /></Field>
         </Modal>
       )}
@@ -1028,29 +1370,29 @@ function UsersPage({ token, notify }: any) {
   return (
     <div>
       <div className="resp-bar" style={S.bar}>
-        <div style={{ fontSize:18, fontWeight:700, color:TEXT }}>Manage Users</div>
+        <div style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>Manage Users</div>
         <button type="button" onClick={()=>setAddModal(true)} style={S.btn}>+ Add User</button>
       </div>
       <div className="resp-page" style={S.page}>
         <div style={S.card}>
-          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${GLASS_BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-            <span style={{ fontSize:14, fontWeight:700, color:TEXT }}>All Users ({list.length})</span>
-            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width:220 }} />
+          <div style={{ padding:"14px 18px", borderBottom:`1px solid ${BORDER}`, display:"flex", alignItems:"center", justifyContent:"space-between", background: "#F9FAFB" }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: TEXT }}>All Users ({list.length})</span>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="🔍 Search..." style={{ ...S.inp, width: 220 }} />
           </div>
-          {loading ? <div style={{ padding:40, textAlign:"center", color:MUTED }}>Loading...</div> : (
+          {loading ? <div style={{ padding: 40, textAlign:"center", color: MUTED }}>Loading...</div> : (
             <div className="table-wrap"><table style={{ width:"100%", borderCollapse:"collapse" }}>
               <thead><tr><th style={S.th}>Name</th><th style={S.th}>Email</th><th style={S.th}>Role</th><th style={S.th}>Status</th><th style={S.th}>Added</th><th style={S.th}>Actions</th></tr></thead>
               <tbody>{filtered.map((x:any,i:number)=>(
-                <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="rgba(255,255,255,0.02)")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
+                <tr key={i} onMouseEnter={e=>(e.currentTarget.style.background="#F9FAFB")} onMouseLeave={e=>(e.currentTarget.style.background="transparent")} style={{ transition:"background 0.15s" }}>
                   <td style={S.tdn}>{x.name}</td>
                   <td style={S.td}>{x.email}</td>
                   <td style={S.td}><Badge>{ROLES.find(r=>r.value===x.role)?.label||x.role}</Badge></td>
                   <td style={S.td}><Badge status={x.isActive?"active":"rejected"}>{x.isActive?"Active":"Inactive"}</Badge></td>
                   <td style={S.td}>{fmt(x.createdAt)}</td>
                   <td style={S.td}>
-                    <div style={{ display:"flex", gap:6 }}>
-                      <button type="button" onClick={()=>{ setResetModal(x); setNewPw(""); }} style={{ padding:"4px 10px", fontSize:11, borderRadius:6, border:`1px solid ${GLASS_BORDER}`, background:"rgba(0,212,255,0.08)", color:BRAND, cursor:"pointer", fontFamily:FONT }}>🔑 Reset PW</button>
-                      {x.isActive&&<button type="button" onClick={()=>deleteUser(x.id,x.name)} style={{ padding:"4px 10px", fontSize:11, borderRadius:6, border:"1px solid rgba(239,68,68,0.2)", background:"rgba(239,68,68,0.06)", color:"#EF4444", cursor:"pointer", fontFamily:FONT }}>🗑 Deactivate</button>}
+                    <div style={{ display:"flex", gap: 6 }}>
+                      <button type="button" onClick={()=>{ setResetModal(x); setNewPw(""); }} style={{ padding:"5px 10px", fontSize: 12, borderRadius: 6, border:`1px solid ${BORDER}`, background:`${BRAND}12`, color: BRAND, cursor:"pointer", fontFamily: FONT, fontWeight: 500 }}>🔑 Reset PW</button>
+                      {x.isActive&&<button type="button" onClick={()=>deleteUser(x.id,x.name)} style={{ padding:"5px 10px", fontSize: 12, borderRadius: 6, border:`1px solid ${DANGER}40`, background:`${DANGER}10`, color: DANGER, cursor:"pointer", fontFamily: FONT, fontWeight: 500 }}>🗑 Deactivate</button>}
                     </div>
                   </td>
                 </tr>
@@ -1073,7 +1415,7 @@ function UsersPage({ token, notify }: any) {
       )}
       {resetModal && (
         <Modal title={`Reset Password — ${resetModal.name}`} onClose={()=>setResetModal(null)} onSave={resetPassword} saving={saving}>
-          <div style={{ fontSize:13, color:MUTED, marginBottom:16 }}>New password for <strong style={{ color:TEXT }}>{resetModal.name}</strong></div>
+          <div style={{ fontSize: 13, color: MUTED, marginBottom: 16 }}>New password for <strong style={{ color: TEXT }}>{resetModal.name}</strong></div>
           <Field label="New Password"><input style={S.inp} type="password" value={newPw} onChange={e=>setNewPw(e.target.value)} placeholder="Min 8 characters" /></Field>
         </Modal>
       )}
@@ -1081,7 +1423,7 @@ function UsersPage({ token, notify }: any) {
   );
 }
 
-// ── Root Page ──────────────────────────────────────────────────────────────
+// ── Root Page (with light sidebar) ────────────────────────────────────────
 export default function Page() {
   const [token, setToken] = useState("");
   const [userRole, setUserRole] = useState("");
@@ -1124,59 +1466,162 @@ export default function Page() {
   return (
     <>
     <GlobalStyles />
-    <div style={{ display:"flex", minHeight:"100vh", background:BG, color:TEXT, fontFamily:FONT }}>
-      <div style={{ position:"fixed", top:"10%", left:"15%", width:500, height:500, borderRadius:"50%", background:`radial-gradient(circle,rgba(0,212,255,0.06),transparent 70%)`, filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
-      <div style={{ position:"fixed", bottom:"10%", right:"10%", width:400, height:400, borderRadius:"50%", background:`radial-gradient(circle,rgba(180,79,255,0.07),transparent 70%)`, filter:"blur(60px)", pointerEvents:"none", zIndex:0 }} />
-
+    <div style={{ display:"flex", minHeight:"100vh", background: BG, color: TEXT, fontFamily: FONT }}>
+      
       {/* Mobile overlay */}
       {isMobile && sidebarOpen && (
-        <div onClick={()=>setSidebarOpen(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", zIndex:49, backdropFilter:"blur(2px)" }} />
+        <div onClick={()=>setSidebarOpen(false)} style={{ 
+          position:"fixed", 
+          inset:0, 
+          background:"rgba(0,0,0,0.4)", 
+          zIndex:49 
+        }} />
       )}
 
       {/* Sidebar */}
-      <div style={{ width:230, background:`rgba(6,7,26,0.97)`, backdropFilter:"blur(20px)", borderRight:`1px solid ${GLASS_BORDER}`, display:"flex", flexDirection:"column", flexShrink:0, position:"fixed", top:0, left:0, bottom:0, zIndex:50, overflowY:"auto", transition:"transform 0.28s cubic-bezier(0.4,0,0.2,1)", transform:isMobile&&!sidebarOpen?"translateX(-100%)":"translateX(0)" }}>
-        <div style={{ padding:"22px 18px 18px", borderBottom:`1px solid ${GLASS_BORDER}` }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+      <div style={{ 
+        width: 240, 
+        background: SIDEBAR, 
+        borderRight:`1px solid ${BORDER}`, 
+        display:"flex", 
+        flexDirection:"column", 
+        flexShrink:0, 
+        position:"fixed", 
+        top:0, 
+        left:0, 
+        bottom:0, 
+        zIndex:50, 
+        overflowY:"auto", 
+        transition:"transform 0.3s ease", 
+        transform: isMobile && !sidebarOpen ? "translateX(-100%)" : "translateX(0)",
+        boxShadow:"2px 0 8px rgba(0,0,0,0.05)"
+      }}>
+        <div style={{ 
+          padding:"20px 18px", 
+          borderBottom:`1px solid ${BORDER}` 
+        }}>
+          <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
             <img 
-  src="/PNG.png"
-  alt="Company Logo"
-  style={{ 
-    width: 45,
-    height: 45,
-    objectFit: "contain",
-    borderRadius: 8
-  }} 
-/>
+              src="/PNG.png"
+              alt="Company Logo"
+              style={{ 
+                width: 45,
+                height: 45,
+                objectFit: "contain",
+                borderRadius: 8
+              }} 
+            />
             <div>
-              <div style={{ fontSize:18, fontWeight:900, letterSpacing:"-0.5px" }}>
-                <span style={{ color:TEXT }}>{COMPANY.slice(0,2)}</span>
-                <span style={{ background:G1, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>{COMPANY.slice(2)}</span>
-              </div>
-              <div style={{ fontSize:9, fontWeight:700, color:BRAND, background:"rgba(0,212,255,0.1)", padding:"1px 7px", borderRadius:10, display:"inline-block", letterSpacing:"1px", textTransform:"uppercase", marginTop:2 }}>ATS Platform</div>
+              <div style={{ fontSize: 19, fontWeight: 700, color: TEXT }}>{COMPANY}</div>
+              <div style={{ 
+                fontSize: 10, 
+                fontWeight: 600, 
+                color: BRAND, 
+                background:`${BRAND}15`, 
+                padding:"2px 8px", 
+                borderRadius: 6, 
+                display:"inline-block", 
+                letterSpacing:"0.5px", 
+                textTransform:"uppercase", 
+                marginTop: 2 
+              }}>ATS Platform</div>
             </div>
           </div>
         </div>
-        <div style={{ flex:1, padding:"16px 10px", display:"flex", flexDirection:"column", gap:2 }}>
+        <div style={{ flex:1, padding:"16px 10px", display:"flex", flexDirection:"column", gap: 2 }}>
           {navItems.map(n=>{ const active=page===n.id; return (
-            <button key={n.id} type="button" onClick={()=>goToPage(n.id)} style={{ display:"flex", alignItems:"center", gap:9, padding:"10px 12px", borderRadius:10, color:active?BRAND:MUTED, fontSize:13, fontWeight:active?600:400, cursor:"pointer", border:"none", background:active?"rgba(0,212,255,0.1)":"transparent", width:"100%", textAlign:"left", fontFamily:FONT, transition:"all 0.15s", boxShadow:active?`inset 0 0 0 1px rgba(0,212,255,0.15)`:"none" }}>{n.label}</button>
+            <button key={n.id} type="button" onClick={()=>goToPage(n.id)} style={{ 
+              display:"flex", 
+              alignItems:"center", 
+              gap: 10, 
+              padding:"11px 14px", 
+              borderRadius: 8, 
+              color: active ? BRAND : TEXT, 
+              fontSize: 14, 
+              fontWeight: active ? 600 : 400, 
+              cursor:"pointer", 
+              border:"none", 
+              background: active ? `${BRAND}12` : "transparent", 
+              width:"100%", 
+              textAlign:"left", 
+              fontFamily: FONT, 
+              transition:"all 0.15s" 
+            }}>{n.label}</button>
           );})}
         </div>
-        <div style={{ padding:"12px 10px", borderTop:`1px solid ${GLASS_BORDER}` }}>
-          <button type="button" onClick={()=>{ setToken(""); setUserRole(""); setUserName(""); }} style={{ display:"flex", alignItems:"center", gap:9, padding:"10px 12px", borderRadius:10, color:MUTED, fontSize:13, cursor:"pointer", border:"none", background:"transparent", width:"100%", textAlign:"left", fontFamily:FONT }}>↩ Sign Out</button>
-          <div style={{ padding:"6px 12px 2px", fontSize:10, color:MUTED, lineHeight:1.6 }}>Developed with ❤️ in India<br />by <span style={{ color:BRAND, fontWeight:600 }}>Owais</span></div>
+        <div style={{ padding:"12px 10px", borderTop:`1px solid ${BORDER}` }}>
+          <button type="button" onClick={()=>{ setToken(""); setUserRole(""); setUserName(""); }} style={{ 
+            display:"flex", 
+            alignItems:"center", 
+            gap: 10, 
+            padding:"11px 14px", 
+            borderRadius: 8, 
+            color: TEXT, 
+            fontSize: 14, 
+            cursor:"pointer", 
+            border:"none", 
+            background:"transparent", 
+            width:"100%", 
+            textAlign:"left", 
+            fontFamily: FONT 
+          }}>↩ Sign Out</button>
+          <div style={{ padding:"6px 14px 2px", fontSize: 11, color: MUTED, lineHeight:1.6 }}>
+            Developed with ❤️ in India<br />by <span style={{ color: BRAND, fontWeight: 600 }}>Owais</span>
+          </div>
         </div>
       </div>
 
       {/* Main content */}
-      <div style={{ marginLeft:isMobile?0:230, flex:1, minHeight:"100vh", position:"relative", zIndex:1, maxWidth:isMobile?"100%":"calc(100% - 230px)" }}>
+      <div style={{ 
+        marginLeft: isMobile ? 0 : 240, 
+        flex:1, 
+        minHeight:"100vh", 
+        maxWidth: isMobile ? "100%" : "calc(100% - 240px)" 
+      }}>
         {/* Top bar */}
-        <div style={{ position:"sticky", top:0, zIndex:40, background:"rgba(6,7,26,0.92)", backdropFilter:"blur(20px)", borderBottom:`1px solid ${GLASS_BORDER}`, padding:isMobile?"10px 14px":"10px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12 }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            {isMobile && <button type="button" onClick={()=>setSidebarOpen(!sidebarOpen)} style={{ background:"rgba(255,255,255,0.06)", border:`1px solid ${GLASS_BORDER}`, borderRadius:8, padding:"7px 11px", cursor:"pointer", color:TEXT, fontSize:18, lineHeight:1, fontFamily:FONT }}>☰</button>}
-            {isMobile && <span style={{ fontSize:15, fontWeight:800, background:G1, WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>{COMPANY}</span>}
+        <div style={{ 
+          position:"sticky", 
+          top:0, 
+          zIndex:40, 
+          background: CARD, 
+          borderBottom:`1px solid ${BORDER}`, 
+          padding: isMobile ? "10px 14px" : "12px 28px", 
+          display:"flex", 
+          justifyContent:"space-between", 
+          alignItems:"center", 
+          gap: 12,
+          boxShadow:"0 1px 3px rgba(0,0,0,0.05)"
+        }}>
+          <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
+            {isMobile && (
+              <button type="button" onClick={()=>setSidebarOpen(!sidebarOpen)} style={{ 
+                background: CARD, 
+                border:`1px solid ${BORDER}`, 
+                borderRadius: 6, 
+                padding:"7px 11px", 
+                cursor:"pointer", 
+                color: TEXT, 
+                fontSize: 18, 
+                lineHeight:1, 
+                fontFamily: FONT 
+              }}>☰</button>
+            )}
+            {isMobile && <span style={{ fontSize: 16, fontWeight: 700, color: TEXT }}>{COMPANY}</span>}
           </div>
-          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-            {userRole && !isMobile && <span style={{ fontSize:11, color:MUTED, background:"rgba(255,255,255,0.04)", padding:"4px 12px", borderRadius:20, border:`1px solid ${GLASS_BORDER}` }}>{ROLES.find(r=>r.value===userRole)?.label||userRole}</span>}
+          <div style={{ display:"flex", alignItems:"center", gap: 10 }}>
+            {userRole && !isMobile && (
+              <span style={{ 
+                fontSize: 12, 
+                color: MUTED, 
+                background: "#F3F4F6", 
+                padding:"5px 12px", 
+                borderRadius: 6, 
+                border:`1px solid ${BORDER}`,
+                fontWeight: 500
+              }}>
+                {ROLES.find(r=>r.value===userRole)?.label||userRole}
+              </span>
+            )}
             <NotificationBell token={token} notify={notify} />
           </div>
         </div>
@@ -1186,7 +1631,7 @@ export default function Page() {
         {page==="jobs"        && <JobsPage token={token} notify={notify} />}
         {page==="clients"     && <DataPage title="Clients" token={token} notify={notify} endpoint="/api/clients" addTitle="Client"
           columns={[
-            { key:"clientId", label:"CLT ID", render:(x:any)=><span style={{ fontFamily:"monospace", fontSize:11, background:"rgba(0,212,255,0.08)", padding:"3px 8px", borderRadius:6, color:BRAND, border:`1px solid rgba(0,212,255,0.2)` }}>{x.clientId||"—"}</span> },
+            { key:"clientId", label:"CLT ID", render:(x:any)=><span style={{ fontFamily:"monospace", fontSize: 11, background:`${BRAND}12`, padding:"4px 8px", borderRadius: 6, color: BRAND, border:`1px solid ${BRAND}30` }}>{x.clientId||"—"}</span> },
             { key:"name", label:"Company", isName:true },
             { key:"industry", label:"Industry" },
             { key:"contactName", label:"Contact" },
@@ -1207,7 +1652,25 @@ export default function Page() {
       </div>
 
       {toast.show && (
-        <div style={{ position:"fixed", bottom:20, right:isMobile?12:24, left:isMobile?12:"auto", background:"rgba(10,12,30,0.97)", backdropFilter:"blur(20px)", border:`1px solid ${GLASS_BORDER}`, borderRadius:12, padding:"13px 18px", fontSize:13, zIndex:999, boxShadow:"0 12px 40px rgba(0,0,0,0.6)", borderLeft:`3px solid ${toast.type==="success"?"#10B981":toast.type==="error"?"#EF4444":BRAND}`, color:TEXT, display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ 
+          position:"fixed", 
+          bottom: 20, 
+          right: isMobile ? 12 : 24, 
+          left: isMobile ? 12 : "auto", 
+          background: CARD, 
+          border:`1px solid ${BORDER}`, 
+          borderRadius: 12, 
+          padding:"14px 18px", 
+          fontSize: 14, 
+          zIndex:999, 
+          boxShadow:"0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)", 
+          borderLeft:`4px solid ${toast.type==="success"?SUCCESS:toast.type==="error"?DANGER:BRAND}`, 
+          color: TEXT, 
+          display:"flex", 
+          alignItems:"center", 
+          gap: 10,
+          fontWeight: 500
+        }}>
           <span>{toast.type==="success"?"✅":toast.type==="error"?"❌":"ℹ️"}</span>
           <span>{toast.msg}</span>
         </div>

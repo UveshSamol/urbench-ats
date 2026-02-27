@@ -56,8 +56,8 @@ const COMPANY  = process.env.NEXT_PUBLIC_COMPANY_NAME   || "UrBench";
 const TAGLINE  = process.env.NEXT_PUBLIC_COMPANY_TAGLINE|| "Building Trust, Exceeding Expectations";
 
 const G1 = `linear-gradient(135deg,#6C63FF,#8F88FF,#FF7A59)`;
-const GLASS        = `rgba(10,12,30,0.65)`;
-const GLASS_BORDER = `rgba(255,255,255,0.07)`;
+const GLASS        = `rgba(255,255,255,0.9)`;   // Light glass overlay
+const GLASS_BORDER = `rgba(0,0,0,0.1)`;         // Subtle dark border
 const GLASS_BLUR   = "blur(20px)";
 
 const SUBMISSION_STATUSES = [

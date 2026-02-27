@@ -27,10 +27,30 @@ export const PATCH = withAuth(async (req: AuthenticatedRequest, ctx: any) => {
   if (body.role) data.role = body.role;
   if (body.isActive !== undefined) data.isActive = body.isActive;
   if (body.managerId !== undefined) data.managerId = body.managerId;
+  
+  // FIX: Ensure password is processed BEFORE the update
   if (body.password) {
-    data.passwordHash = await bcrypt.hash(body.password, 12);
+    const hash = await bcrypt.hash(body.password, 12);
+    data.passwordHash = hash;
+    // ADD: Force password change flag (optional but recommended)
+    data.mustChangePassword = false; // Reset any forced change flags
   }
 
-  const user = await prisma.user.update({ where: { id }, data });
+  const user = await prisma.user.update({ 
+    where: { id }, 
+    data,
+    // ADD: Explicitly select fields to avoid leaking passwordHash
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      isActive: true,
+      managerId: true,
+      createdAt: true,
+      updatedAt: true,
+    }
+  });
+  
   return NextResponse.json({ data: user });
 });

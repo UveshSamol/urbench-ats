@@ -9,10 +9,10 @@ const createSchema = z.object({
   email: z.string().email(),
   role: z.enum(["ADMIN", "RECRUITER", "SALES"]),
   managerId: z.string().optional(),
-  password: z.string().min(8),
+  password: z.string().min(8).optional(),
 }).transform(data => ({
   ...data,
-  password: data.password || "Welcome1234!" // Default if not provided
+  password: data.password || "Welcome1234!"
 }));
 
 export const GET = withAdmin(async (req: AuthenticatedRequest) => {
